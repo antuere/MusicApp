@@ -17,4 +17,11 @@ data class File(
     val name: String,
     val order: Int,
     val size: Int
-)
+) : Comparable<File> {
+
+
+    override fun compareTo(other: File): Int {
+        return this.order - other.order
+    }
+
+}

@@ -1,10 +1,9 @@
 package com.example.musicapp.network.musicProfile
 
-import com.squareup.moshi.Json
-
 data class Playlists(
-
-    @Json(name = "playlist_id")
-    val playlistId: Int,
-    val proportion: Int
+    val duration: Int,
+    val files: List<File>,
+    val id: Int,
+    val name: String,
+    val random: Boolean
 )

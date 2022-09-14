@@ -9,7 +9,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 
 
-private const val BASE_URL = "http://192.168.1.53:5000/"
+private const val BASE_URL = "http://192.168.1.25:8080/"
 
 private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory())
     .build()
@@ -22,7 +22,7 @@ private val retrofit = Retrofit.Builder()
 
 interface MusicApiService {
 
-    @GET("returnjson")
+    @GET("schedule")
     suspend fun getJSON(): MusicProfile
 
 }
