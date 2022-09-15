@@ -34,18 +34,17 @@ class TitleFragment : Fragment() {
 
         viewModel = ViewModelProvider(this, factory)[TitleViewModel::class.java]
 
-        viewModel.profile.observe(viewLifecycleOwner) {
-            Timber.i("my log Music profile has name(in liveData) is ${it?.name ?: "null"}")
-            it?.let {
-                viewModel.getPlaylist()
-                requireActivity().title = it.name
-            }
-        }
+//        viewModel.profile.observe(viewLifecycleOwner) {
+//            Timber.i("my log Music profile has name(in liveData) is ${it?.name ?: "null"}")
+//            it?.let {
+//                viewModel.getPlaylist()
+//                requireActivity().title = it.name
+//            }
+//        }
 
         viewModel.playlists.observe(viewLifecycleOwner) {
             it?.let {
                 Timber.i("my log we in playlist LiveData and his size ${it.size}")
-                viewModel.downloadMusicFile()
                 binding.testText.text = it.size.toString()
             }
         }

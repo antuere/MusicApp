@@ -7,17 +7,15 @@ import androidx.lifecycle.*
 import com.example.musicapp.network.MusicApi
 import com.example.musicapp.network.musicProfile.MusicProfile
 import com.example.musicapp.network.musicProfile.Playlists
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.BufferedInputStream
 import java.lang.Exception
 import java.net.URL
+import java.nio.channels.Channels
 
 
-class TitleViewModel(val applicationMy: Application) : AndroidViewModel(applicationMy) {
+class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(applicationMy) {
 
 
     private var _profile = MutableLiveData<MusicProfile>()
@@ -35,7 +33,6 @@ class TitleViewModel(val applicationMy: Application) : AndroidViewModel(applicat
 
     init {
         getResponseFromServer()
-
     }
 
     private fun getResponseFromServer() {
@@ -44,6 +41,10 @@ class TitleViewModel(val applicationMy: Application) : AndroidViewModel(applicat
             try {
                 _profile.value = MusicApi.retrofitService.getJSON()
 
+                _playlists.value = _profile.value!!.schedule.playlists
+
+                downloadMusicFiles()
+
             } catch (e: Exception) {
                 _showError.value = e.message
             }
@@ -51,49 +52,47 @@ class TitleViewModel(val applicationMy: Application) : AndroidViewModel(applicat
     }
 
 
-    fun getPlaylist() {
-        _playlists.value = _profile.value!!.schedule.playlists
-    }
-
-
-    fun downloadMusicFile() {
-        val url = _playlists.value!!.first().files.first().url
-        val fileName = _playlists.value!!.first().files.first().name
-
-        Timber.i("my log url is $url")
-        Timber.i("my log fileName is $fileName")
+    private fun downloadMusicFiles() {
+        _playlists.value!!.forEach { playlist ->
+            playlist.files.forEach { file ->
+                downloadMusicFileFromUrl(
+                    file.url,
+                    file.name,
+                    getApplication<Application>().applicationContext
+                )
+            }
+        }
 
     }
 
     private fun downloadMusicFileFromUrl(urlString: String, fileName: String, context: Context) {
-        Timber.i("my log in download")
+
+        Timber.i("my log in download $fileName")
 
         viewModelScope.launch(Dispatchers.IO) {
             Timber.i("my log in coroutine")
             val url = URL(urlString)
-            val connection = url.openConnection()
 
-            connection.connect()
+            url.openConnection().connect()
 
             val inputStream = BufferedInputStream(url.openStream())
 
             val outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
-            val data = ByteArray(2048)
-            var count = inputStream.read(data)
-            var total = count
+
+            val data = ByteArray(1024)
+
+            var count = 0
 
             while (count != -1) {
-                Timber.i("my log in cicle")
-                outputStream.write(data, 0, count)
                 count = inputStream.read(data)
-                total += count
+                outputStream.write(data, 0, count)
             }
-            Timber.i("my log save complete")
+
+            Timber.i("my log save complete $fileName")
             outputStream.flush()
             outputStream.close()
             inputStream.close()
         }
-
     }
 
 }
