@@ -81,11 +81,11 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
 
             val data = ByteArray(1024)
 
-            var count = 0
+            var count = inputStream.read(data)
 
             while (count != -1) {
-                count = inputStream.read(data)
                 outputStream.write(data, 0, count)
+                count = inputStream.read(data)
             }
 
             Timber.i("my log save complete $fileName")
