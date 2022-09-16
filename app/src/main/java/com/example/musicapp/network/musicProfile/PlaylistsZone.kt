@@ -8,3 +8,4 @@ data class PlaylistsZone(
     val playlistId: Int,
     val proportion: Int
 )
+

@@ -2,17 +2,17 @@ package com.example.musicapp.screens.titleFragment
 
 import android.app.Application
 import android.content.Context
-import android.media.metrics.PlaybackSession
 import androidx.lifecycle.*
+import com.example.musicapp.foldersPaths
 import com.example.musicapp.network.MusicApi
 import com.example.musicapp.network.musicProfile.MusicProfile
-import com.example.musicapp.network.musicProfile.Playlists
+import com.example.musicapp.network.musicProfile.Playlist
 import kotlinx.coroutines.*
 import timber.log.Timber
-import java.io.BufferedInputStream
+import java.io.*
 import java.lang.Exception
 import java.net.URL
-import java.nio.channels.Channels
+import java.security.MessageDigest
 
 
 class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(applicationMy) {
@@ -23,13 +23,14 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
         get() = _profile
 
 
-    private var _playlists = MutableLiveData<List<Playlists>>()
-    val playlists: LiveData<List<Playlists>>
+    private var _playlists = MutableLiveData<List<Playlist>>()
+    val playlists: LiveData<List<Playlist>>
         get() = _playlists
 
     private val _showError = MutableLiveData<String>()
     val showError: LiveData<String>
         get() = _showError
+
 
     init {
         getResponseFromServer()
@@ -45,6 +46,10 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
 
                 downloadMusicFiles()
 
+                delay(2000)
+
+                Timber.i("my log folders : ${foldersPaths.toString()}")
+
             } catch (e: Exception) {
                 _showError.value = e.message
             }
@@ -52,47 +57,65 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
     }
 
 
-    private fun downloadMusicFiles() {
+    private suspend fun downloadMusicFiles() {
         _playlists.value!!.forEach { playlist ->
-            playlist.files.forEach { file ->
+            playlist.songs.forEach { song ->
                 downloadMusicFileFromUrl(
-                    file.url,
-                    file.name,
-                    getApplication<Application>().applicationContext
+                    song.url,
+                    song.name,
+                    getApplication<Application>().applicationContext,
+                    playlist.name
                 )
+
             }
         }
-
     }
 
-    private fun downloadMusicFileFromUrl(urlString: String, fileName: String, context: Context) {
-
+    private fun downloadMusicFileFromUrl(
+        urlString: String, fileName: String, context: Context, playlist: String
+    ) {
         Timber.i("my log in download $fileName")
-
         viewModelScope.launch(Dispatchers.IO) {
             Timber.i("my log in coroutine")
             val url = URL(urlString)
-
             url.openConnection().connect()
 
             val inputStream = BufferedInputStream(url.openStream())
 
-            val outputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
+            val directoryString = context.filesDir.absolutePath + "/$playlist/"
+            val directory = File(directoryString)
+
+            if (!foldersPaths.containsKey(playlist)) {
+                foldersPaths[playlist] = directoryString
+            }
+
+            if (!directory.exists()) {
+                Timber.i("my log : make dir ${directory.toString()}")
+                directory.mkdir();
+            }
+
+            val file = File(directory, fileName)
+            val outputStream = FileOutputStream(file)
 
             val data = ByteArray(1024)
-
             var count = inputStream.read(data)
 
-            while (count != -1) {
-                outputStream.write(data, 0, count)
-                count = inputStream.read(data)
+            try {
+                while (count != -1) {
+                    outputStream.write(data, 0, count)
+                    count = inputStream.read(data)
+                }
+            } catch (e: Exception) {
+                Timber.i("my log again error, lovely emulator >")
             }
 
             Timber.i("my log save complete $fileName")
+
             outputStream.flush()
             outputStream.close()
             inputStream.close()
         }
     }
+
 
 }

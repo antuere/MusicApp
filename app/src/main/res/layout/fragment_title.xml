@@ -3,26 +3,13 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context=".screens.titleFragment.TitleFragment">
 
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/dayList"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    <TextView
-            android:id="@+id/test_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            tools:text = "test"/>
-
-    <TextView
-            android:id="@+id/test_text_upper"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center|start"
-            android:layout_margin="20dp"
-            android:text="Name of playlist:" />
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
 </FrameLayout>

@@ -1,6 +1,5 @@
 package com.example.musicapp.screens.titleFragment
 
-import android.app.Application
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import android.view.*
@@ -10,6 +9,7 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.musicapp.R
 import com.example.musicapp.databinding.FragmentTitleBinding
 import timber.log.Timber
@@ -34,18 +34,16 @@ class TitleFragment : Fragment() {
 
         viewModel = ViewModelProvider(this, factory)[TitleViewModel::class.java]
 
-//        viewModel.profile.observe(viewLifecycleOwner) {
-//            Timber.i("my log Music profile has name(in liveData) is ${it?.name ?: "null"}")
-//            it?.let {
-//                viewModel.getPlaylist()
-//                requireActivity().title = it.name
-//            }
-//        }
+        viewModel.profile.observe(viewLifecycleOwner) {
+            Timber.i("my log Music profile has name(in liveData) is ${it?.name ?: "null"}")
+            it?.let {
+                requireActivity().title = it.name
+            }
+        }
 
         viewModel.playlists.observe(viewLifecycleOwner) {
             it?.let {
                 Timber.i("my log we in playlist LiveData and his size ${it.size}")
-                binding.testText.text = it.size.toString()
             }
         }
         return binding.root
@@ -59,6 +57,16 @@ class TitleFragment : Fragment() {
             it?.let {
                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 Timber.i("error : $it")
+            }
+        }
+
+
+        viewModel.profile.observe(viewLifecycleOwner) {
+            it?.let {
+                val adapter = MainAdapter(it)
+                binding.dayList.adapter = adapter
+
+                adapter.submitList(it.schedule.days.sorted())
             }
         }
 

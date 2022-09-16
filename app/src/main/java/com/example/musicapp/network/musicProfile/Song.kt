@@ -2,7 +2,7 @@ package com.example.musicapp.network.musicProfile
 
 import com.squareup.moshi.Json
 
-data class File(
+data class Song(
     val duration: Int,
 
     @Json(name = "file_name")
@@ -17,10 +17,10 @@ data class File(
     val name: String,
     val order: Int,
     val size: Int
-) : Comparable<File> {
+) : Comparable<Song> {
 
 
-    override fun compareTo(other: File): Int {
+    override fun compareTo(other: Song): Int {
         return this.order - other.order
     }
 
