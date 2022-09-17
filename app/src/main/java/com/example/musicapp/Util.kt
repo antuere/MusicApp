@@ -3,6 +3,7 @@ package com.example.musicapp
 import com.example.musicapp.network.musicProfile.Playlist
 import com.example.musicapp.network.musicProfile.PlaylistsZone
 import com.example.musicapp.network.musicProfile.Song
+import com.google.android.exoplayer2.ExoPlayer
 import timber.log.Timber
 import java.io.File
 import java.security.MessageDigest
@@ -56,6 +57,10 @@ fun PlaylistsZone.getPlaylist(list: List<Playlist>): Playlist {
         }
     }
     throw IllegalArgumentException("Playlist not found")
+}
+
+object MyPlayer {
+    lateinit var player: ExoPlayer
 }
 
 

@@ -13,6 +13,7 @@ import androidx.navigation.NavArgs
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.example.musicapp.MyPlayer
 import com.example.musicapp.R
 import com.example.musicapp.databinding.FragmentPlayerBinding
 import com.example.musicapp.databinding.FragmentTitleBinding
@@ -59,7 +60,6 @@ class PlayerFragment : Fragment(), Player.Listener {
         }
 
         val args: PlayerFragmentArgs by navArgs()
-
         schedule = args.schedule
 
         return binding.root
@@ -69,33 +69,12 @@ class PlayerFragment : Fragment(), Player.Listener {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this)[PlayerViewModel::class.java]
 
-        setupPlayer()
-        addSongs()
-
-    }
-
-    private fun setupPlayer() {
-        player = ExoPlayer.Builder(requireContext()).build()
+        player = MyPlayer.player
         playerView = binding.playerView
         playerView.player = player
-        player.addListener(this)
-
-        player.repeatMode = Player.REPEAT_MODE_ALL
-
 
     }
 
-    private fun addSongs() {
-
-        val playlist = schedule.playlists.first()
-        playlist.songs.forEach {
-            val uri = Uri.fromFile(File(foldersPaths[playlist.name]!! + "/${it.name}"))
-            val mediaItem = MediaItem.fromUri(uri)
-            player.addMediaItem(mediaItem)
-        }
-        player.prepare()
-        player.shuffleModeEnabled = true
-    }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)

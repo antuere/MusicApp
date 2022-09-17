@@ -2,11 +2,17 @@ package com.example.musicapp.screens.titleFragment
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.*
+import com.example.musicapp.MyPlayer
 import com.example.musicapp.foldersPaths
 import com.example.musicapp.network.MusicApi
 import com.example.musicapp.network.musicProfile.MusicProfile
 import com.example.musicapp.network.musicProfile.Playlist
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.*
@@ -15,13 +21,15 @@ import java.net.URL
 import java.security.MessageDigest
 
 
-class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(applicationMy) {
+class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(applicationMy),
+    Player.Listener {
 
 
     private var _profile = MutableLiveData<MusicProfile>()
     val profile: LiveData<MusicProfile>
         get() = _profile
 
+    private lateinit var player: ExoPlayer
 
     private var _playlists = MutableLiveData<List<Playlist>>()
     val playlists: LiveData<List<Playlist>>
@@ -52,6 +60,10 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
 
                 _renderUI.value = true
                 Timber.i("my log folders : ${foldersPaths.toString()}")
+
+                setupPlayer()
+                addSongs()
+                player.play()
 
             } catch (e: Exception) {
                 _showError.value = e.message
@@ -119,6 +131,25 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
             outputStream.close()
             inputStream.close()
         }
+    }
+
+    private fun setupPlayer() {
+        MyPlayer.player =
+            ExoPlayer.Builder(getApplication<Application>().applicationContext).build()
+        player = MyPlayer.player
+        player.addListener(this)
+        player.repeatMode = Player.REPEAT_MODE_ALL
+    }
+
+    private fun addSongs() {
+        val playlist = _playlists.value!!.first()
+        playlist.songs.forEach {
+            val uri = Uri.fromFile(File(foldersPaths[playlist.name]!! + "/${it.name}"))
+            val mediaItem = MediaItem.fromUri(uri)
+            player.addMediaItem(mediaItem)
+        }
+        player.prepare()
+        player.shuffleModeEnabled = true
     }
 
 

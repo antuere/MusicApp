@@ -1,5 +1,6 @@
 package com.example.musicapp.screens.titleFragment
 
+import android.net.Uri
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import android.view.*
@@ -12,12 +13,18 @@ import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.musicapp.MyPlayer
 import com.example.musicapp.R
 import com.example.musicapp.databinding.FragmentTitleBinding
+import com.example.musicapp.foldersPaths
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import com.google.android.material.appbar.MaterialToolbar
 import timber.log.Timber
+import java.io.File
 
-class TitleFragment : Fragment() {
+class TitleFragment : Fragment(), Player.Listener {
 
     companion object {
         fun newInstance() = TitleFragment()
@@ -63,6 +70,7 @@ class TitleFragment : Fragment() {
                 binding.dayList.adapter = adapter
                 adapter.submitListOnAnotherThread(profile.schedule.days.sorted())
                 binding.progressCircular.visibility = View.GONE
+
             } else {
                 binding.progressCircular.show()
             }
@@ -107,4 +115,6 @@ class TitleFragment : Fragment() {
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
     }
+
+
 }
