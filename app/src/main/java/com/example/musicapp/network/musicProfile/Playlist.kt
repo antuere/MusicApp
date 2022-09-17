@@ -1,7 +1,11 @@
 package com.example.musicapp.network.musicProfile
 
+import android.os.Parcelable
 import com.squareup.moshi.Json
+import kotlinx.android.parcel.Parcelize
 
+
+@Parcelize
 data class Playlist(
     val duration: Int,
 
@@ -11,4 +15,4 @@ data class Playlist(
     val id: Int,
     val name: String,
     val random: Boolean
-)
+) : Parcelable

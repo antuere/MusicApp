@@ -9,9 +9,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.databinding.HeaderItemBinding
 import com.example.musicapp.network.musicProfile.Day
 import com.example.musicapp.network.musicProfile.MusicProfile
+import kotlinx.coroutines.*
 
 class MainAdapter(private val profile: MusicProfile) :
     ListAdapter<Day, MainAdapter.TitleViewHolder>(MyDiffCallBack()) {
+
+    private val backScope = CoroutineScope(Dispatchers.Default)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TitleViewHolder {
         return TitleViewHolder.from(parent)
@@ -20,6 +23,14 @@ class MainAdapter(private val profile: MusicProfile) :
     override fun onBindViewHolder(holder: TitleViewHolder, position: Int) {
         val item = getItem(position)
         holder.bind(item, profile)
+    }
+
+    fun submitListOnAnotherThread(list: List<Day>) {
+        backScope.launch {
+            withContext(Dispatchers.Main) {
+                submitList(list)
+            }
+        }
     }
 
 

@@ -25,7 +25,6 @@ class MainActivity : AppCompatActivity() {
 
         navController = navHostFragment.navController
 
-        setupActionBarWithNavController(navController)
         Timber.plant(Timber.DebugTree())
 
     }

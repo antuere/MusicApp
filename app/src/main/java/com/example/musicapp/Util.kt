@@ -22,13 +22,13 @@ fun convertDayOfWeekToNumber(day: String): Int {
     }
 }
 
-fun Song.checkMD5(pathToFile: String): Boolean {
+fun Song.checkMD5(pathToFile: String?): Boolean {
 
     val digest = MessageDigest.getInstance("MD5")
     val requestMD5 = this.md5File
     var result: String
 
-    val file = File(pathToFile)
+    val file = File(pathToFile!!)
 
     file.inputStream().use { fis ->
         val buffer = ByteArray(1024)
@@ -42,7 +42,8 @@ fun Song.checkMD5(pathToFile: String): Boolean {
         }
         result = digest.digest().joinToString("") { "%02x".format(it) }
     }
-    Timber.i("md5 for ${file.name} is: $result")
+    Timber.i("md5 for ${file.name} result is: $result")
+    Timber.i("md5 for ${file.name} request is: $requestMD5")
 
     return result == requestMD5
 }

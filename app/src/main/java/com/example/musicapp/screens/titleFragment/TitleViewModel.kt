@@ -31,6 +31,10 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
     val showError: LiveData<String>
         get() = _showError
 
+    private val _renderUI = MutableLiveData<Boolean>(false)
+    val renderUI: LiveData<Boolean>
+        get() = _renderUI
+
 
     init {
         getResponseFromServer()
@@ -46,8 +50,7 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
 
                 downloadMusicFiles()
 
-                delay(2000)
-
+                _renderUI.value = true
                 Timber.i("my log folders : ${foldersPaths.toString()}")
 
             } catch (e: Exception) {
@@ -65,17 +68,18 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
                     song.name,
                     getApplication<Application>().applicationContext,
                     playlist.name
-                )
+                ).join()
 
             }
         }
+
     }
 
     private fun downloadMusicFileFromUrl(
         urlString: String, fileName: String, context: Context, playlist: String
-    ) {
+    ): Job {
         Timber.i("my log in download $fileName")
-        viewModelScope.launch(Dispatchers.IO) {
+        return viewModelScope.launch(Dispatchers.IO) {
             Timber.i("my log in coroutine")
             val url = URL(urlString)
             url.openConnection().connect()

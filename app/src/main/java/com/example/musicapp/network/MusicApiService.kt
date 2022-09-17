@@ -12,7 +12,7 @@ import retrofit2.http.Header
 import java.util.concurrent.TimeUnit
 
 
-private const val BASE_URL = "http://192.168.1.64:8080/"
+private const val BASE_URL = "http://192.168.0.111:5432/"
 
 private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory())
     .build()

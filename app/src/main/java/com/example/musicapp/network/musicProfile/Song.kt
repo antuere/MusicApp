@@ -1,7 +1,11 @@
 package com.example.musicapp.network.musicProfile
 
+import android.os.Parcelable
 import com.squareup.moshi.Json
+import kotlinx.android.parcel.Parcelize
 
+
+@Parcelize
 data class Song(
     val duration: Int,
 
@@ -17,8 +21,7 @@ data class Song(
     val name: String,
     val order: Int,
     val size: Int
-) : Comparable<Song> {
-
+) : Comparable<Song>, Parcelable {
 
     override fun compareTo(other: Song): Int {
         return this.order - other.order

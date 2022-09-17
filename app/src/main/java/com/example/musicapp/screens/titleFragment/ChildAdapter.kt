@@ -1,14 +1,18 @@
 package com.example.musicapp.screens.titleFragment
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.musicapp.checkMD5
 import com.example.musicapp.databinding.DayItemBinding
+import com.example.musicapp.foldersPaths
 import com.example.musicapp.getPlaylist
 import com.example.musicapp.network.musicProfile.MusicProfile
 import com.example.musicapp.network.musicProfile.TimeZone
+import timber.log.Timber
 
 class ChildAdapter(private val profile: MusicProfile) :
     ListAdapter<TimeZone, ChildAdapter.ChildViewHolder>(ChildDiffUtil()) {
@@ -39,8 +43,15 @@ class ChildAdapter(private val profile: MusicProfile) :
                 val timeTextString = "${item.from} - ${item.to}"
 
                 timeText.text = timeTextString
-                val playListNameString =
-                    item.playlistsOfZone.first().getPlaylist(profile.schedule.playlists).name
+                val playlist = item.playlistsOfZone.first().getPlaylist(profile.schedule.playlists)
+                playListName.text = playlist.name
+
+                playlist.songs.forEach {
+                    val check = it.checkMD5(foldersPaths[playlist.name] + "/${it.name}")
+                    if (!check) {
+                        binding.errorView.visibility = View.VISIBLE
+                    }
+                }
 
                 buttonLeft.setOnClickListener {
                     var current = proportion.text.toString().toInt()
@@ -56,7 +67,7 @@ class ChildAdapter(private val profile: MusicProfile) :
                     current++
                     proportion.text = current.toString()
                 }
-                playListName.text = playListNameString
+
             }
         }
     }
