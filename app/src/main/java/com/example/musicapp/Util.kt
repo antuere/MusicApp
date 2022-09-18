@@ -1,67 +1,40 @@
 package com.example.musicapp
 
-import com.example.musicapp.network.musicProfile.Playlist
-import com.example.musicapp.network.musicProfile.PlaylistsZone
-import com.example.musicapp.network.musicProfile.Song
-import com.google.android.exoplayer2.ExoPlayer
-import timber.log.Timber
-import java.io.File
-import java.security.MessageDigest
 
-var foldersPaths = mutableMapOf<String, String>()
 
-fun convertDayOfWeekToNumber(day: String): Int {
-    return when (day) {
-        "MONDAY" -> 1
-        "TUESDAY" -> 2
-        "WEDNESDAY" -> 3
-        "THURSDAY" -> 4
-        "FRIDAY" -> 5
-        "SATURDAY" -> 6
-        "SUNDAY" -> 7
-        else -> throw IllegalArgumentException("Invalid day of week")
-    }
-}
 
-fun Song.checkMD5(pathToFile: String?): Boolean {
+fun convertDayOfWeekToNumber(day: String, startWeekFromMonday: Boolean = true): Int {
 
-    val digest = MessageDigest.getInstance("MD5")
-    val requestMD5 = this.md5File
-    var result: String
-
-    val file = File(pathToFile!!)
-
-    file.inputStream().use { fis ->
-        val buffer = ByteArray(1024)
-        generateSequence {
-            when (val bytesRead = fis.read(buffer)) {
-                -1 -> null
-                else -> bytesRead
-            }
-        }.forEach { bytesRead ->
-            digest.update(buffer, 0, bytesRead)
+    if (startWeekFromMonday) {
+        return when (day) {
+            "MONDAY" -> 1
+            "TUESDAY" -> 2
+            "WEDNESDAY" -> 3
+            "THURSDAY" -> 4
+            "FRIDAY" -> 5
+            "SATURDAY" -> 6
+            "SUNDAY" -> 7
+            else -> throw IllegalArgumentException("Invalid day of week")
         }
-        result = digest.digest().joinToString("") { "%02x".format(it) }
-    }
-    Timber.i("md5 for ${file.name} result is: $result")
-    Timber.i("md5 for ${file.name} request is: $requestMD5")
-
-    return result == requestMD5
-}
-
-fun PlaylistsZone.getPlaylist(list: List<Playlist>): Playlist {
-
-    list.forEach { playlist ->
-        if (playlist.id == this.playlistId) {
-            return playlist
+    } else {
+        return when (day) {
+            "MONDAY" -> 2
+            "TUESDAY" -> 3
+            "WEDNESDAY" -> 4
+            "THURSDAY" -> 5
+            "FRIDAY" -> 6
+            "SATURDAY" -> 7
+            "SUNDAY" -> 1
+            else -> throw IllegalArgumentException("Invalid day of week")
         }
     }
-    throw IllegalArgumentException("Playlist not found")
 }
 
-object MyPlayer {
-    lateinit var player: ExoPlayer
-}
+
+
+
+
+
 
 
 

@@ -3,7 +3,6 @@ package com.example.musicapp.screens.titleFragment
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.databinding.HeaderItemBinding
@@ -47,9 +46,9 @@ class MainAdapter(private val profile: MusicProfile) :
 
         fun bind(item: Day, profile: MusicProfile) {
             binding.header.text = item.day.replaceFirstChar { it.titlecaseChar() }
+
             val childAdapter = ChildAdapter(profile)
             binding.nestedRecycleView.adapter = childAdapter
-
             childAdapter.submitList(item.timeZones.sorted())
 
         }

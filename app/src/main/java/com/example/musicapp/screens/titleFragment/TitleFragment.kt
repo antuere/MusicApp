@@ -1,30 +1,21 @@
 package com.example.musicapp.screens.titleFragment
 
-import android.net.Uri
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
 import android.widget.Toast
-import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.musicapp.MyPlayer
 import com.example.musicapp.R
 import com.example.musicapp.databinding.FragmentTitleBinding
-import com.example.musicapp.foldersPaths
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
 import com.google.android.material.appbar.MaterialToolbar
 import timber.log.Timber
-import java.io.File
 
-class TitleFragment : Fragment(), Player.Listener {
+class TitleFragment : Fragment() {
 
     companion object {
         fun newInstance() = TitleFragment()
@@ -37,7 +28,7 @@ class TitleFragment : Fragment(), Player.Listener {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         binding = FragmentTitleBinding.inflate(inflater, container, false)
         actionBar = binding.toolBarApp
@@ -74,6 +65,10 @@ class TitleFragment : Fragment(), Player.Listener {
             } else {
                 binding.progressCircular.show()
             }
+        }
+
+        viewModel.player.observe(viewLifecycleOwner){
+            it?.play()
         }
 
         return binding.root
@@ -116,5 +111,11 @@ class TitleFragment : Fragment(), Player.Listener {
 
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.player.observe(viewLifecycleOwner) {
+            it?.stop()
+        }
+    }
 
 }

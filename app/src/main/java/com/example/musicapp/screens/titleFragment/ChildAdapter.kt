@@ -6,13 +6,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.musicapp.checkMD5
 import com.example.musicapp.databinding.DayItemBinding
-import com.example.musicapp.foldersPaths
-import com.example.musicapp.getPlaylist
 import com.example.musicapp.network.musicProfile.MusicProfile
 import com.example.musicapp.network.musicProfile.TimeZone
-import timber.log.Timber
 
 class ChildAdapter(private val profile: MusicProfile) :
     ListAdapter<TimeZone, ChildAdapter.ChildViewHolder>(ChildDiffUtil()) {
@@ -41,8 +37,8 @@ class ChildAdapter(private val profile: MusicProfile) :
         fun bind(item: TimeZone, profile: MusicProfile) {
             with(binding) {
                 val timeTextString = "${item.from} - ${item.to}"
-
                 timeText.text = timeTextString
+
                 val playlist = item.playlistsOfZone.first().getPlaylist(profile.schedule.playlists)
                 playListName.text = playlist.name
 
@@ -57,7 +53,7 @@ class ChildAdapter(private val profile: MusicProfile) :
                     var current = proportion.text.toString().toInt()
                     current--
                     if (current < 1) {
-                        proportion.text = "1"
+                        return@setOnClickListener
                     } else proportion.text = current.toString()
 
                 }

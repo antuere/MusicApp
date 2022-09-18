@@ -3,9 +3,6 @@ package com.example.musicapp.network.musicProfile
 import android.os.Parcelable
 import com.example.musicapp.convertDayOfWeekToNumber
 import kotlinx.android.parcel.Parcelize
-import java.text.SimpleDateFormat
-import java.time.format.DateTimeFormatter
-import java.util.*
 
 
 @Parcelize

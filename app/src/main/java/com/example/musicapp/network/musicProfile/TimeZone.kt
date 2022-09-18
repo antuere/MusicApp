@@ -3,7 +3,6 @@ package com.example.musicapp.network.musicProfile
 import android.os.Parcelable
 import com.squareup.moshi.Json
 import kotlinx.android.parcel.Parcelize
-import java.sql.Time
 import java.text.SimpleDateFormat
 import java.util.*
 

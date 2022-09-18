@@ -2,26 +2,24 @@ package com.example.musicapp.screens.titleFragment
 
 import android.app.Application
 import android.content.Context
-import android.net.Uri
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.*
 import com.example.musicapp.MyPlayer
-import com.example.musicapp.foldersPaths
 import com.example.musicapp.network.MusicApi
 import com.example.musicapp.network.musicProfile.MusicProfile
 import com.example.musicapp.network.musicProfile.Playlist
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.*
 import java.lang.Exception
 import java.net.URL
-import java.security.MessageDigest
 
+private var _foldersPaths = mutableMapOf<String, String>()
+val foldersPaths: Map<String, String>
+    get() = _foldersPaths
 
-class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(applicationMy),
+class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationMy),
     Player.Listener {
 
 
@@ -29,7 +27,9 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
     val profile: LiveData<MusicProfile>
         get() = _profile
 
-    private lateinit var player: ExoPlayer
+    private var _player = MutableLiveData<ExoPlayer>()
+    val player: LiveData<ExoPlayer>
+        get() = _player
 
     private var _playlists = MutableLiveData<List<Playlist>>()
     val playlists: LiveData<List<Playlist>>
@@ -39,7 +39,7 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
     val showError: LiveData<String>
         get() = _showError
 
-    private val _renderUI = MutableLiveData<Boolean>(false)
+    private val _renderUI = MutableLiveData(false)
     val renderUI: LiveData<Boolean>
         get() = _renderUI
 
@@ -59,11 +59,10 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
                 downloadMusicFiles()
 
                 _renderUI.value = true
-                Timber.i("my log folders : ${foldersPaths.toString()}")
+                Timber.i("my log folders : $foldersPaths")
 
-                setupPlayer()
-                addSongs()
-                player.play()
+                _player.value = MyPlayer.getInstance(getApplication<Application>().applicationContext)
+                MyPlayer.setScheduleForPlayer(_profile.value!!)
 
             } catch (e: Exception) {
                 _showError.value = e.message
@@ -102,12 +101,12 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
             val directory = File(directoryString)
 
             if (!foldersPaths.containsKey(playlist)) {
-                foldersPaths[playlist] = directoryString
+                _foldersPaths[playlist] = directoryString
             }
 
             if (!directory.exists()) {
-                Timber.i("my log : make dir ${directory.toString()}")
-                directory.mkdir();
+                Timber.i("my log : make dir $directory")
+                directory.mkdir()
             }
 
             val file = File(directory, fileName)
@@ -132,25 +131,5 @@ class TitleViewModel(private val applicationMy: Application) : AndroidViewModel(
             inputStream.close()
         }
     }
-
-    private fun setupPlayer() {
-        MyPlayer.player =
-            ExoPlayer.Builder(getApplication<Application>().applicationContext).build()
-        player = MyPlayer.player
-        player.addListener(this)
-        player.repeatMode = Player.REPEAT_MODE_ALL
-    }
-
-    private fun addSongs() {
-        val playlist = _playlists.value!!.first()
-        playlist.songs.forEach {
-            val uri = Uri.fromFile(File(foldersPaths[playlist.name]!! + "/${it.name}"))
-            val mediaItem = MediaItem.fromUri(uri)
-            player.addMediaItem(mediaItem)
-        }
-        player.prepare()
-        player.shuffleModeEnabled = true
-    }
-
 
 }
