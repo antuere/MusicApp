@@ -9,6 +9,8 @@ import com.example.musicapp.screens.titleFragment.foldersPaths
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
+import kotlinx.coroutines.*
+import timber.log.Timber
 import java.io.File
 import java.util.*
 import kotlin.concurrent.timerTask
@@ -42,9 +44,12 @@ object MyPlayer : Player.Listener {
         days.forEach { day ->
             calendar = Calendar.getInstance()
             val currentDayOnCalendar = calendar.get(Calendar.DAY_OF_WEEK)
-            val dayFromProfile = convertDayOfWeekToNumber(day.toString().uppercase(), false)
+            Timber.i("error: currentDayOnCalendar is $currentDayOnCalendar")
+            val dayFromProfile = convertDayOfWeekToNumber(day.day.uppercase(), false)
+            Timber.i("error: dayFromProfile is $dayFromProfile")
 
             if (currentDayOnCalendar == dayFromProfile) {
+                Timber.i("error: in the if statement")
                 timezones = day.timeZones
                 timezones.forEach { timeZone ->
                     setTimer(timeZone, calendar)
@@ -55,6 +60,8 @@ object MyPlayer : Player.Listener {
     }
 
     private fun setTimer(timeZone: TimeZone, calendar: Calendar) {
+        Timber.i("error: enter in the setTimer")
+
         val hoursStart = timeZone.from.substringBefore(":").toInt()
         val minutesStart = timeZone.from.substringAfter(":").toInt()
 
@@ -70,6 +77,29 @@ object MyPlayer : Player.Listener {
         player!!.repeatMode = Player.REPEAT_MODE_ALL
         val timerStart = Timer()
         val timerTaskStart = timerTask {
+            startPlay(timeZone)
+        }
+        timerStart.schedule(timerTaskStart, calendar.time)
+
+        calendar.set(Calendar.HOUR_OF_DAY, hoursEnd)
+        calendar.set(Calendar.MINUTE, minutesEnd)
+        calendar.set(Calendar.SECOND, 0)
+
+
+        val timerEnd = Timer()
+        val timerTaskEnd = timerTask {
+            stopPlay()
+        }
+        timerEnd.schedule(timerTaskEnd, calendar.time)
+
+        Timber.i("error: end in the setTimer")
+
+    }
+
+    private fun startPlay(timeZone: TimeZone) {
+        val scope = CoroutineScope(Dispatchers.Main)
+
+        scope.launch {
             player!!.clearMediaItems()
 
             timeZone.playlistsOfZone.forEach { playlistsZone ->
@@ -83,22 +113,15 @@ object MyPlayer : Player.Listener {
             player!!.shuffleModeEnabled = true
             player!!.prepare()
             player!!.play()
-
         }
-        timerStart.schedule(timerTaskStart, calendar.time)
+    }
 
-        calendar.set(Calendar.HOUR_OF_DAY, hoursEnd)
-        calendar.set(Calendar.MINUTE, minutesEnd)
-        calendar.set(Calendar.SECOND, 0)
+    private fun stopPlay() {
+        val scope = CoroutineScope(Dispatchers.Main)
 
-
-        val timerEnd = Timer()
-        val timerTaskEnd = timerTask {
+        scope.launch {
             player!!.stop()
         }
-        timerEnd.schedule(timerTaskEnd, calendar.time)
-
-
     }
 }
 

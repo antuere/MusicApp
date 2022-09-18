@@ -2,7 +2,6 @@ package com.example.musicapp
 
 
 
-
 fun convertDayOfWeekToNumber(day: String, startWeekFromMonday: Boolean = true): Int {
 
     if (startWeekFromMonday) {

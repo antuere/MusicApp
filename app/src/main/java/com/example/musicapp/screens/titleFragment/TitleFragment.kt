@@ -68,7 +68,7 @@ class TitleFragment : Fragment() {
         }
 
         viewModel.player.observe(viewLifecycleOwner){
-            it?.play()
+//            it?.play()
         }
 
         return binding.root

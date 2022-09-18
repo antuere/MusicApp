@@ -65,7 +65,7 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
                 MyPlayer.setScheduleForPlayer(_profile.value!!)
 
             } catch (e: Exception) {
-                _showError.value = e.message
+                throw e
             }
         }
     }
