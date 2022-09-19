@@ -67,7 +67,7 @@ class TitleFragment : Fragment() {
             }
         }
 
-        viewModel.player.observe(viewLifecycleOwner){
+        viewModel.player.observe(viewLifecycleOwner) {
 //            it?.play()
         }
 
@@ -114,6 +114,10 @@ class TitleFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         viewModel.player.observe(viewLifecycleOwner) {
+            it?.stop()
+        }
+
+        viewModel.playerExtra.observe(viewLifecycleOwner) {
             it?.stop()
         }
     }

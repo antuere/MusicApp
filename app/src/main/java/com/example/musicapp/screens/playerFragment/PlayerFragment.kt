@@ -60,7 +60,7 @@ class PlayerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this)[PlayerViewModel::class.java]
 
-        player = MyPlayer.getInstance(requireContext())
+        player = MyPlayer.getInstanceMain(requireContext())
         playerView = binding.playerView
         playerView.player = player
 

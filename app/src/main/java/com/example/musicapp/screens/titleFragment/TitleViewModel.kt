@@ -31,6 +31,11 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
     val player: LiveData<ExoPlayer>
         get() = _player
 
+
+    private var _playerExtra = MutableLiveData<ExoPlayer>()
+    val playerExtra: LiveData<ExoPlayer>
+        get() = _playerExtra
+
     private var _playlists = MutableLiveData<List<Playlist>>()
     val playlists: LiveData<List<Playlist>>
         get() = _playlists
@@ -61,8 +66,13 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
                 _renderUI.value = true
                 Timber.i("my log folders : $foldersPaths")
 
-                _player.value = MyPlayer.getInstance(getApplication<Application>().applicationContext)
+                _player.value =
+                    MyPlayer.getInstanceMain(getApplication<Application>().applicationContext)
+                _playerExtra.value =
+                    MyPlayer.getInstanceExtra(getApplication<Application>().applicationContext)
+
                 MyPlayer.setScheduleForPlayer(_profile.value!!)
+
 
             } catch (e: Exception) {
                 throw e
