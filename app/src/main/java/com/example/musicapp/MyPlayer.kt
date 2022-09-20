@@ -10,12 +10,9 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.MediaMetadata
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.source.ConcatenatingMediaSource
-import com.google.android.exoplayer2.source.MediaSource
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.File
-import java.sql.Time
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -28,6 +25,10 @@ object MyPlayer : Player.Listener {
     private var playerExtra: ExoPlayer? = null
 
     private lateinit var playlists: List<Playlist>
+
+    private var durationSet = false
+    private var doCrossFade = false
+    private var isFirstIteration = true
 
     fun getInstanceMain(context: Context): ExoPlayer {
         var myPlayer = player
@@ -97,6 +98,7 @@ object MyPlayer : Player.Listener {
         calendar.set(Calendar.SECOND, 1)
 
         player!!.addListener(this)
+        playerExtra!!.addListener(this)
 
         player!!.repeatMode = Player.REPEAT_MODE_ALL
         playerExtra!!.repeatMode = Player.REPEAT_MODE_ALL
@@ -157,7 +159,8 @@ object MyPlayer : Player.Listener {
             player!!.play()
 
             playerExtra!!.volume = 0F
-            playerExtra!!.play()
+            playerExtra!!.seekToNextMediaItem()
+
         }
     }
 
@@ -171,91 +174,95 @@ object MyPlayer : Player.Listener {
         }
     }
 
-    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+    override fun onPlaybackStateChanged(playbackState: Int) {
 
-        super.onMediaItemTransition(mediaItem, reason)
-
-        if (reason == Player.DISCONTINUITY_REASON_SEEK || reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
-            if (player!!.volume == 1F) {
-                Timber.i("my log: makeCrossFade to mainPlayer")
-                makeCrossFade(player!!, playerExtra!!)
-
-            } else if (playerExtra!!.volume == 1F) {
-                Timber.i("my log: makeCrossFade to extraPlayer")
-                makeCrossFade(playerExtra!!, player!!)
-
-            }
+        if (playbackState == ExoPlayer.STATE_READY && !durationSet) {
+            Timber.i("my log: makeCrossFade to mainPlayer first time, playing ${player!!.mediaMetadata.title}")
+            makeCrossFade(player!!, playerExtra!!)
+            durationSet = true
+            doCrossFade = true
         }
 
     }
 
+//    override fun onIsPlayingChanged(isPlaying: Boolean) {
+//
+//        if (playerExtra!!.isPlaying && !player!!.isPlaying) {
+//
+//            Timber.i("my log: makeCrossFade to mainPlayer")
+//            makeCrossFade(playerExtra!!, player!!)
+//
+//        } else if (player!!.isPlaying && !playerExtra!!.isPlaying) {
+//
+//            Timber.i("my log: makeCrossFade to extraPlayer")
+//            makeCrossFade(player!!, playerExtra!!)
+//
+//        }
+//    }
+
+    override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+
+        Timber.i("my log: mediaDataChanged")
+
+        if (player!!.volume == 1F && doCrossFade) {
+            Timber.i("my log: makeCrossFade to mainPlayer playing ${player!!.mediaMetadata.title}")
+            makeCrossFade(player!!, playerExtra!!)
+
+        } else if (playerExtra!!.volume == 1F && doCrossFade) {
+            Timber.i("my log: makeCrossFade to extraPlayer playing ${playerExtra!!.mediaMetadata.title}")
+            makeCrossFade(playerExtra!!, player!!)
+        }
+    }
 
     private fun makeCrossFade(playerFirst: ExoPlayer, playerSecond: ExoPlayer) {
 
-        val delay = playerFirst.duration - 2000
+        Timber.i("my log: makeCrossFade now is playing ${playerFirst.mediaMetadata.title}")
+
+        var delay = playerFirst.contentDuration - 13000
+
+        if (isFirstIteration) {
+            delay = playerFirst.contentDuration - 7000
+            isFirstIteration = false
+        }
+
+        var delayValue = 0.7F
         Timber.i("my log: duration from player ${playerFirst.duration}")
 
         val timer = Timer()
 
+        Timber.i("my log: before timer task")
         val timerTask = timerTask {
             CoroutineScope(Dispatchers.Main).launch {
-
+                Timber.i("my log: enter timer task")
                 playerFirst.volume = 0.9F
-                delay(200)
+                delay(350)
+                playerFirst.volume = 0.85F
+                delay(350)
 
                 playerFirst.volume = 0.8F
-                delay(200)
+                delay(350)
+                playerFirst.volume = 0.75F
+                delay(350)
 
-                playerFirst.volume = 0.7F
-                delay(200)
+                playerSecond.prepare()
+                playerSecond.play()
 
-                playerFirst.volume = 0.6F
-                delay(200)
+                repeat(14) {
+                    playerSecond.volume = 1 - delayValue
+                    playerFirst.volume = delayValue
+                    delay(350)
 
-                playerFirst.volume = 0.5F
-                delay(200)
+                    delayValue -= 0.05F
+                }
 
-                playerFirst.volume = 0.4F
-                delay(200)
-
-                playerFirst.volume = 0.3F
-                delay(200)
-
-                playerFirst.volume = 0.2F
-                delay(200)
-
-                playerFirst.volume = 0.1F
-                delay(200)
-
-                playerFirst.volume = 0.0F
-                delay(200)
-
-
-                playerSecond.volume = 0.2F
-
-
-                playerSecond.volume = 0.3F
-                delay(200)
-
-                playerSecond.volume = 0.4F
-                delay(200)
-
-                playerSecond.volume = 0.5F
-                delay(200)
-
-                playerSecond.volume = 0.6F
-                delay(200)
-
-                playerSecond.volume = 0.7F
-                delay(200)
-
-                playerSecond.volume = 0.8F
-                delay(200)
-
-                playerSecond.volume = 0.9F
-
-                delay(200)
                 playerSecond.volume = 1F
+                playerFirst.volume = 0.0F
+                delay(650)
+
+                playerFirst.stop()
+                playerFirst.seekToNextMediaItem()
+
+                Timber.i("my log: exit timer task")
 
             }
         }
