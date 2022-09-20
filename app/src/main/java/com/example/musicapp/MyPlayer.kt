@@ -107,7 +107,12 @@ object MyPlayer : Player.Listener {
                 playlist.songs.forEach {
                     val uri = Uri.fromFile(File(foldersPaths[playlist.name]!! + "/${it.name}"))
                     val mediaItem = MediaItem.fromUri(uri)
-                    player!!.addMediaItem(mediaItem)
+                    val song = mediaItem.mediaMetadata.buildUpon()
+                        .setTitle("${playlist.name} - ${it.name}").build()
+
+                    val resultSong = mediaItem.buildUpon().setMediaMetadata(song).build()
+
+                    player!!.addMediaItem(resultSong)
                 }
             }
             player!!.shuffleModeEnabled = true
