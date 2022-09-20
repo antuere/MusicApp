@@ -28,7 +28,6 @@ object MyPlayer : Player.Listener {
 
     private var durationSet = false
     private var doCrossFade = false
-    private var isFirstIteration = true
 
     fun getInstanceMain(context: Context): ExoPlayer {
         var myPlayer = player
@@ -153,6 +152,7 @@ object MyPlayer : Player.Listener {
 
 
             player!!.shuffleModeEnabled = true
+            playerExtra!!.shuffleModeEnabled = true
 
             player!!.prepare()
             playerExtra!!.prepare()
@@ -185,20 +185,6 @@ object MyPlayer : Player.Listener {
 
     }
 
-//    override fun onIsPlayingChanged(isPlaying: Boolean) {
-//
-//        if (playerExtra!!.isPlaying && !player!!.isPlaying) {
-//
-//            Timber.i("my log: makeCrossFade to mainPlayer")
-//            makeCrossFade(playerExtra!!, player!!)
-//
-//        } else if (player!!.isPlaying && !playerExtra!!.isPlaying) {
-//
-//            Timber.i("my log: makeCrossFade to extraPlayer")
-//            makeCrossFade(player!!, playerExtra!!)
-//
-//        }
-//    }
 
     override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
 
@@ -218,12 +204,10 @@ object MyPlayer : Player.Listener {
 
         Timber.i("my log: makeCrossFade now is playing ${playerFirst.mediaMetadata.title}")
 
-        var delay = playerFirst.contentDuration - 13000
+        val position = playerFirst.currentPosition
+        val timeLeft = playerFirst.contentDuration - position
 
-        if (isFirstIteration) {
-            delay = playerFirst.contentDuration - 7000
-            isFirstIteration = false
-        }
+        val delay = timeLeft - 7000
 
         var delayValue = 0.7F
         Timber.i("my log: duration from player ${playerFirst.duration}")
