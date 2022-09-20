@@ -67,10 +67,6 @@ class TitleFragment : Fragment() {
             }
         }
 
-        viewModel.player.observe(viewLifecycleOwner) {
-//            it?.play()
-        }
-
         return binding.root
     }
 
@@ -97,9 +93,7 @@ class TitleFragment : Fragment() {
                 return when (menuItem.itemId) {
                     R.id.play -> {
                         findNavController().navigate(
-                            TitleFragmentDirections.actionTitleFragmentToPlayerFragment(
-                                viewModel.profile.value!!.schedule
-                            )
+                            TitleFragmentDirections.actionTitleFragmentToPlayerFragment()
                         )
                         true
                     }

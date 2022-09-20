@@ -2,23 +2,25 @@ package com.example.musicapp.screens.playerFragment
 
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
+import android.text.TextUtils
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.example.musicapp.MyPlayer
 import com.example.musicapp.R
 import com.example.musicapp.databinding.FragmentPlayerBinding
-import com.example.musicapp.network.musicProfile.Schedule
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaMetadata
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.material.appbar.MaterialToolbar
 
-class PlayerFragment : Fragment() {
+class PlayerFragment : Fragment(), Player.Listener {
 
     companion object {
         fun newInstance() = PlayerFragment()
@@ -28,10 +30,12 @@ class PlayerFragment : Fragment() {
     private lateinit var binding: FragmentPlayerBinding
     private lateinit var actionBar: MaterialToolbar
 
-    private lateinit var schedule: Schedule
 
     private lateinit var player: ExoPlayer
     private lateinit var playerView: StyledPlayerView
+
+    private lateinit var activity: AppCompatActivity
+    private lateinit var title: TextView
 
 
     override fun onCreateView(
@@ -42,16 +46,29 @@ class PlayerFragment : Fragment() {
         actionBar = binding.toolBarApp
 
 
-        val activity = requireActivity() as AppCompatActivity
+        activity = requireActivity() as AppCompatActivity
         activity.setSupportActionBar(actionBar)
+
         actionBar.navigationIcon =
             ContextCompat.getDrawable(requireContext(), R.drawable.ic_arrow_back_24)
         actionBar.setNavigationOnClickListener {
             findNavController().navigateUp()
         }
 
-        val args: PlayerFragmentArgs by navArgs()
-        schedule = args.schedule
+        player = MyPlayer.getInstanceMain(requireContext())
+        playerView = binding.playerView
+        playerView.player = player
+
+        player.addListener(this)
+
+        activity.supportActionBar?.title = ""
+        title = binding.textTitle
+
+        title.text = player.mediaMetadata.title
+        title.ellipsize = TextUtils.TruncateAt.MARQUEE
+        title.isSingleLine = true
+        title.marqueeRepeatLimit = -1
+        title.isSelected = true
 
         return binding.root
     }
@@ -60,12 +77,15 @@ class PlayerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this)[PlayerViewModel::class.java]
 
-        player = MyPlayer.getInstanceMain(requireContext())
-        playerView = binding.playerView
-        playerView.player = player
 
     }
 
+    override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+        super.onMediaMetadataChanged(mediaMetadata)
+
+        title.text = mediaMetadata.title ?: "Title not found"
+
+    }
 }
 
 

@@ -8,7 +8,6 @@ import com.example.musicapp.network.MusicApi
 import com.example.musicapp.network.musicProfile.MusicProfile
 import com.example.musicapp.network.musicProfile.Playlist
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.Player
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.*
@@ -19,8 +18,7 @@ private var _foldersPaths = mutableMapOf<String, String>()
 val foldersPaths: Map<String, String>
     get() = _foldersPaths
 
-class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationMy),
-    Player.Listener {
+class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationMy) {
 
 
     private var _profile = MutableLiveData<MusicProfile>()

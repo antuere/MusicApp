@@ -142,11 +142,17 @@ object MyPlayer : Player.Listener {
 //
 //
 //                    }
+
                     val uri = Uri.fromFile(File(path))
                     val mediaItem = MediaItem.fromUri(uri)
 
-                    player!!.addMediaItem(mediaItem)
-                    playerExtra!!.addMediaItem(mediaItem)
+                    val song = mediaItem.mediaMetadata.buildUpon()
+                        .setTitle("${playlist.name} - ${it.name}").build()
+
+                    val resultSong = mediaItem.buildUpon().setMediaMetadata(song).build()
+
+                    player!!.addMediaItem(resultSong)
+                    playerExtra!!.addMediaItem(resultSong)
                 }
             }
 
@@ -208,8 +214,8 @@ object MyPlayer : Player.Listener {
         val timeLeft = playerFirst.contentDuration - position
 
         val delay = timeLeft - 7000
-
         var delayValue = 0.7F
+
         Timber.i("my log: duration from player ${playerFirst.duration}")
 
         val timer = Timer()
