@@ -30,7 +30,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/white"
                     android:layout_gravity="start"
-                    android:textSize="18sp"/>
+                    android:textSize="20sp"/>
 
         </com.google.android.material.appbar.MaterialToolbar>
 
@@ -42,6 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
+            app:controller_layout_id="@layout/my_exoplayer_ui"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/appBarLayout"

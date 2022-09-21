@@ -20,7 +20,7 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.material.appbar.MaterialToolbar
 
-class PlayerFragment : Fragment(), Player.Listener {
+class PlayerFragment : Fragment() {
 
     companion object {
         fun newInstance() = PlayerFragment()
@@ -31,7 +31,6 @@ class PlayerFragment : Fragment(), Player.Listener {
     private lateinit var actionBar: MaterialToolbar
 
 
-    private lateinit var player: ExoPlayer
     private lateinit var playerView: StyledPlayerView
 
     private lateinit var activity: AppCompatActivity
@@ -55,16 +54,10 @@ class PlayerFragment : Fragment(), Player.Listener {
             findNavController().navigateUp()
         }
 
-        player = MyPlayer.getInstanceMain(requireContext())
         playerView = binding.playerView
-        playerView.player = player
-
-        player.addListener(this)
-
         activity.supportActionBar?.title = ""
         title = binding.textTitle
 
-        title.text = player.mediaMetadata.title
         title.ellipsize = TextUtils.TruncateAt.MARQUEE
         title.isSingleLine = true
         title.marqueeRepeatLimit = -1
@@ -75,17 +68,39 @@ class PlayerFragment : Fragment(), Player.Listener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this)[PlayerViewModel::class.java]
+        val factory = PlayerViewModelFactory(requireActivity().application)
+        viewModel = ViewModelProvider(this, factory)[PlayerViewModel::class.java]
 
+
+        viewModel.showMain.observe(viewLifecycleOwner) {
+
+            if (it) {
+                playerView.player = viewModel.mainPlayer.value
+                title.text =
+                    viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
+
+            } else {
+                playerView.player = viewModel.extraPlayer.value
+                title.text =
+                    viewModel.extraPlayer.value!!.mediaMetadata.title ?: "Today without music"
+
+
+            }
+        }
+
+        viewModel.changeTitle.observe(viewLifecycleOwner) {
+
+            if(it){
+                title.text =
+                    viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
+            } else {
+                title.text =
+                    viewModel.extraPlayer.value!!.mediaMetadata.title ?: "Today without music"
+            }
+        }
 
     }
 
-    override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-        super.onMediaMetadataChanged(mediaMetadata)
-
-        title.text = mediaMetadata.title ?: "Title not found"
-
-    }
 }
 
 

@@ -64,6 +64,12 @@ object MyPlayer : Player.Listener {
         lateinit var calendar: Calendar
         playlists = profile.schedule.playlists
 
+        player!!.addListener(this)
+        playerExtra!!.addListener(this)
+        player!!.repeatMode = Player.REPEAT_MODE_ALL
+        playerExtra!!.repeatMode = Player.REPEAT_MODE_ALL
+
+
         days.forEach { day ->
             calendar = Calendar.getInstance()
             val currentDayOnCalendar = calendar.get(Calendar.DAY_OF_WEEK)
@@ -83,7 +89,8 @@ object MyPlayer : Player.Listener {
     }
 
     private fun setTimer(timeZone: TimeZone, calendar: Calendar) {
-        Timber.i("error: enter in the setTimer")
+
+        Timber.i("my log: enter in the setTimer for timeZone ${timeZone.toString()}")
 
         val hoursStart = timeZone.from.substringBefore(":").toInt()
         val minutesStart = timeZone.from.substringAfter(":").toInt()
@@ -94,28 +101,24 @@ object MyPlayer : Player.Listener {
 
         calendar.set(Calendar.HOUR_OF_DAY, hoursStart)
         calendar.set(Calendar.MINUTE, minutesStart)
-        calendar.set(Calendar.SECOND, 1)
-
-        player!!.addListener(this)
-        playerExtra!!.addListener(this)
-
-        player!!.repeatMode = Player.REPEAT_MODE_ALL
-        playerExtra!!.repeatMode = Player.REPEAT_MODE_ALL
+        calendar.set(Calendar.SECOND, 3)
         val timerStart = Timer()
         val timerTaskStart = timerTask {
+            Timber.i("my log: start for timeZone ${timeZone.toString()}")
             startPlay(timeZone)
         }
         timerStart.schedule(timerTaskStart, calendar.time)
 
+
         calendar.set(Calendar.HOUR_OF_DAY, hoursEnd)
         calendar.set(Calendar.MINUTE, minutesEnd)
         calendar.set(Calendar.SECOND, 0)
-
-
         val timerEnd = Timer()
         val timerTaskEnd = timerTask {
+            Timber.i("my log: end for timeZone ${timeZone.toString()}")
             stopPlay()
         }
+
         timerEnd.schedule(timerTaskEnd, calendar.time)
 
         Timber.i("error: end in the setTimer")
@@ -164,26 +167,33 @@ object MyPlayer : Player.Listener {
             playerExtra!!.prepare()
             player!!.play()
 
-            playerExtra!!.volume = 0F
             playerExtra!!.seekToNextMediaItem()
+            playerExtra!!.volume = 0F
 
         }
     }
 
     private fun stopPlay() {
+
         val scope = CoroutineScope(Dispatchers.Main)
 
         scope.launch {
+
             player!!.stop()
             playerExtra!!.stop()
 
+            player!!.volume = 1F
+            playerExtra!!.volume = 1F
+
+            durationSet = false
+            doCrossFade = false
         }
     }
 
     override fun onPlaybackStateChanged(playbackState: Int) {
 
         if (playbackState == ExoPlayer.STATE_READY && !durationSet) {
-            Timber.i("my log: makeCrossFade to mainPlayer first time, playing ${player!!.mediaMetadata.title}")
+            Timber.i("my log: enter in onPlaybackStateChanged")
             makeCrossFade(player!!, playerExtra!!)
             durationSet = true
             doCrossFade = true
@@ -194,21 +204,32 @@ object MyPlayer : Player.Listener {
 
     override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
 
-        Timber.i("my log: mediaDataChanged")
-
-        if (player!!.volume == 1F && doCrossFade) {
-            Timber.i("my log: makeCrossFade to mainPlayer playing ${player!!.mediaMetadata.title}")
+        if (player!!.volume == 1F && playerExtra!!.volume == 0.0F && doCrossFade) {
             makeCrossFade(player!!, playerExtra!!)
 
-        } else if (playerExtra!!.volume == 1F && doCrossFade) {
-            Timber.i("my log: makeCrossFade to extraPlayer playing ${playerExtra!!.mediaMetadata.title}")
+        } else if (player!!.volume == 0.0F && playerExtra!!.volume == 1F && doCrossFade) {
             makeCrossFade(playerExtra!!, player!!)
         }
     }
 
+    override fun onIsPlayingChanged(isPlaying: Boolean) {
+
+        if (!player!!.isPlaying) {
+
+            player!!.seekToNextMediaItem()
+
+        }
+        if (!playerExtra!!.isPlaying) {
+
+            playerExtra!!.seekToNextMediaItem()
+
+        }
+
+    }
+
     private fun makeCrossFade(playerFirst: ExoPlayer, playerSecond: ExoPlayer) {
 
-        Timber.i("my log: makeCrossFade now is playing ${playerFirst.mediaMetadata.title}")
+        Timber.i("my log: enter in crossFade")
 
         val position = playerFirst.currentPosition
         val timeLeft = playerFirst.contentDuration - position
@@ -216,44 +237,48 @@ object MyPlayer : Player.Listener {
         val delay = timeLeft - 7000
         var delayValue = 0.7F
 
-        Timber.i("my log: duration from player ${playerFirst.duration}")
 
         val timer = Timer()
 
-        Timber.i("my log: before timer task")
         val timerTask = timerTask {
             CoroutineScope(Dispatchers.Main).launch {
-                Timber.i("my log: enter timer task")
-                playerFirst.volume = 0.9F
-                delay(350)
-                playerFirst.volume = 0.85F
-                delay(350)
 
-                playerFirst.volume = 0.8F
-                delay(350)
-                playerFirst.volume = 0.75F
-                delay(350)
-
-                playerSecond.prepare()
-                playerSecond.play()
-
-                repeat(14) {
-                    playerSecond.volume = 1 - delayValue
-                    playerFirst.volume = delayValue
-                    delay(350)
-
-                    delayValue -= 0.05F
+                if (!playerFirst.isPlaying) {
+                    Timber.i("my log: return ;(")
+                    return@launch
                 }
 
-                playerSecond.volume = 1F
-                playerFirst.volume = 0.0F
-                delay(650)
+                if (!playerSecond.isPlaying) {
 
-                playerFirst.stop()
-                playerFirst.seekToNextMediaItem()
+                    Timber.i("my log: start change volumes")
+                    playerFirst.volume = 0.9F
+                    delay(350)
+                    playerFirst.volume = 0.85F
+                    delay(350)
 
-                Timber.i("my log: exit timer task")
+                    playerFirst.volume = 0.8F
+                    delay(350)
+                    playerFirst.volume = 0.75F
+                    delay(350)
 
+                    playerSecond.prepare()
+                    playerSecond.play()
+
+                    repeat(14) {
+                        playerSecond.volume = 1 - delayValue
+                        playerFirst.volume = delayValue
+                        delay(350)
+
+                        delayValue -= 0.05F
+                    }
+
+                    playerSecond.volume = 1F
+                    playerFirst.volume = 0.0F
+                    delay(650)
+
+                    playerFirst.stop()
+
+                }
             }
         }
         timer.schedule(timerTask, delay)
