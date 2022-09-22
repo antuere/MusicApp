@@ -57,9 +57,11 @@ class TitleFragment : Fragment() {
         viewModel.renderUI.observe(viewLifecycleOwner) {
             if (it) {
                 val profile = viewModel.profile.value!!
-                val adapter = MainAdapter(profile)
+                val adapter = MainAdapter()
                 binding.dayList.adapter = adapter
+
                 adapter.submitListOnAnotherThread(profile.schedule.days.sorted())
+
                 binding.progressCircular.visibility = View.GONE
 
             } else {

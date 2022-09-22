@@ -15,11 +15,12 @@
             android:visibility="invisible"
             tools:visibility="visible"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintEnd_toStartOf="@+id/time_text"
+            app:layout_constraintHorizontal_bias="0.041"
             app:layout_constraintHorizontal_chainStyle="spread"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="0.411" />
 
     <TextView
             android:id="@+id/time_text"
@@ -27,11 +28,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="14:30-15:20"
-            app:layout_constraintStart_toEndOf="@+id/error_view"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintEnd_toStartOf="@+id/playList_name"
+            app:layout_constraintHorizontal_bias="0.17"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="0.512" />
 
     <TextView
             android:id="@+id/playList_name"
@@ -39,11 +41,12 @@
             android:textColor="@color/gray"
             android:layout_height="wrap_content"
             tools:text="Плейлист 1"
-            app:layout_constraintStart_toEndOf="@+id/time_text"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintEnd_toStartOf="@+id/button_left"
+            android:gravity="center"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="0.487" />
 
     <ImageButton
             android:id="@+id/button_left"
@@ -51,12 +54,11 @@
             android:layout_height="48dp"
             android:src="@drawable/ic_arrow_left"
             android:background="@color/white"
-            app:layout_constraintStart_toEndOf="@+id/playList_name"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintEnd_toStartOf="@+id/proportion"
+            app:layout_constraintHorizontal_bias="0.716"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintVertical_bias="0.888" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
             android:id="@+id/proportion"

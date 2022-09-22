@@ -1,6 +1,7 @@
 package com.example.musicapp.screens.titleFragment
 
 import android.graphics.Color
+import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -9,11 +10,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.convertDayOfWeekToNumber
 import com.example.musicapp.databinding.HeaderItemBinding
 import com.example.musicapp.network.musicProfile.Day
-import com.example.musicapp.network.musicProfile.MusicProfile
 import kotlinx.coroutines.*
 import java.util.*
 
-class MainAdapter(private val profile: MusicProfile) :
+class MainAdapter :
     ListAdapter<Day, MainAdapter.TitleViewHolder>(MyDiffCallBack()) {
 
     private val backScope = CoroutineScope(Dispatchers.Default)
@@ -24,7 +24,7 @@ class MainAdapter(private val profile: MusicProfile) :
 
     override fun onBindViewHolder(holder: TitleViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item, profile)
+        holder.bind(item)
     }
 
     fun submitListOnAnotherThread(list: List<Day>) {
@@ -47,20 +47,22 @@ class MainAdapter(private val profile: MusicProfile) :
             }
         }
 
-        fun bind(item: Day, profile: MusicProfile) {
+        fun bind(item: Day) {
             val calendar = Calendar.getInstance()
             val currentDayOnCalendar = calendar.get(Calendar.DAY_OF_WEEK)
             val dayFromProfile = convertDayOfWeekToNumber(item.day.uppercase(), false)
 
             if (currentDayOnCalendar == dayFromProfile){
+                binding.header.paintFlags = binding.header.paintFlags or Paint.UNDERLINE_TEXT_FLAG
                 binding.header.setTextColor(Color.rgb(0,137,123))
             }
 
             binding.header.text = item.day.replaceFirstChar { it.titlecaseChar() }
 
-            val childAdapter = ChildAdapter(profile)
+            val childAdapter = ChildAdapter()
             binding.nestedRecycleView.adapter = childAdapter
-            childAdapter.submitList(item.timeZones.sorted())
+
+            childAdapter.submitList(playlistItems[item])
 
         }
     }

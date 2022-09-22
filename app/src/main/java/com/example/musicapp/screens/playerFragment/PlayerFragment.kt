@@ -11,12 +11,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
-import com.example.musicapp.MyPlayer
 import com.example.musicapp.R
 import com.example.musicapp.databinding.FragmentPlayerBinding
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaMetadata
-import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.material.appbar.MaterialToolbar
 
@@ -90,7 +86,7 @@ class PlayerFragment : Fragment() {
 
         viewModel.changeTitle.observe(viewLifecycleOwner) {
 
-            if(it){
+            if (it) {
                 title.text =
                     viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
             } else {

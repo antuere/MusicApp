@@ -66,16 +66,18 @@ object MyPlayer : Player.Listener {
 
         player!!.addListener(this)
         playerExtra!!.addListener(this)
+
         player!!.repeatMode = Player.REPEAT_MODE_ALL
         playerExtra!!.repeatMode = Player.REPEAT_MODE_ALL
+
+//        player!!.shuffleModeEnabled = true
+//        playerExtra!!.shuffleModeEnabled = true
 
 
         days.forEach { day ->
             calendar = Calendar.getInstance()
             val currentDayOnCalendar = calendar.get(Calendar.DAY_OF_WEEK)
-            Timber.i("error: currentDayOnCalendar is $currentDayOnCalendar")
             val dayFromProfile = convertDayOfWeekToNumber(day.day.uppercase(), false)
-            Timber.i("error: dayFromProfile is $dayFromProfile")
 
             if (currentDayOnCalendar == dayFromProfile) {
                 Timber.i("error: in the if statement")
@@ -90,21 +92,17 @@ object MyPlayer : Player.Listener {
 
     private fun setTimer(timeZone: TimeZone, calendar: Calendar) {
 
-        Timber.i("my log: enter in the setTimer for timeZone ${timeZone.toString()}")
-
         val hoursStart = timeZone.from.substringBefore(":").toInt()
         val minutesStart = timeZone.from.substringAfter(":").toInt()
 
         val hoursEnd = timeZone.to.substringBefore(":").toInt()
         val minutesEnd = timeZone.to.substringAfter(":").toInt()
 
-
         calendar.set(Calendar.HOUR_OF_DAY, hoursStart)
         calendar.set(Calendar.MINUTE, minutesStart)
         calendar.set(Calendar.SECOND, 3)
         val timerStart = Timer()
         val timerTaskStart = timerTask {
-            Timber.i("my log: start for timeZone ${timeZone.toString()}")
             startPlay(timeZone)
         }
         timerStart.schedule(timerTaskStart, calendar.time)
@@ -115,23 +113,19 @@ object MyPlayer : Player.Listener {
         calendar.set(Calendar.SECOND, 0)
         val timerEnd = Timer()
         val timerTaskEnd = timerTask {
-            Timber.i("my log: end for timeZone ${timeZone.toString()}")
-            stopPlay()
+            stopPlay(timeZone)
         }
 
         timerEnd.schedule(timerTaskEnd, calendar.time)
-
-        Timber.i("error: end in the setTimer")
-
     }
 
     private fun startPlay(timeZone: TimeZone) {
         val scope = CoroutineScope(Dispatchers.Main)
 
         scope.launch {
-            player!!.clearMediaItems()
-            playerExtra!!.clearMediaItems()
 
+            playerExtra!!.clearMediaItems()
+            player!!.clearMediaItems()
             timeZone.playlistsOfZone.forEach { playlistsZone ->
                 val playlist = playlistsZone.getPlaylist(playlists)
                 playlist.songs.forEach {
@@ -156,27 +150,23 @@ object MyPlayer : Player.Listener {
 
                     player!!.addMediaItem(resultSong)
                     playerExtra!!.addMediaItem(resultSong)
+
                 }
             }
-
-
-            player!!.shuffleModeEnabled = true
-            playerExtra!!.shuffleModeEnabled = true
 
             player!!.prepare()
             playerExtra!!.prepare()
             player!!.play()
 
-            playerExtra!!.seekToNextMediaItem()
             playerExtra!!.volume = 0F
 
         }
     }
 
-    private fun stopPlay() {
+    private fun stopPlay(timeZone: TimeZone) {
 
+        Timber.i("my log : enter in stopPlay for $timeZone")
         val scope = CoroutineScope(Dispatchers.Main)
-
         scope.launch {
 
             player!!.stop()
@@ -187,6 +177,40 @@ object MyPlayer : Player.Listener {
 
             durationSet = false
             doCrossFade = false
+
+            playerExtra!!.clearMediaItems()
+            player!!.clearMediaItems()
+
+//            timeZone.playlistsOfZone.forEach {
+//
+//                val firstPlayerItems = player!!.mediaItemCount
+//                val secondPlayerItems = playerExtra!!.mediaItemCount
+//
+//                val playlist = it.getPlaylist(playlists)
+//
+//                for (i in 0 .. firstPlayerItems) {
+//
+//                    if (i > player!!.mediaItemCount) break
+//
+//                    val mediaItemFirst = player!!.getMediaItemAt(i)
+//
+//                    if (mediaItemFirst.mediaMetadata.title.toString().startsWith(playlist.name)) {
+//                        player!!.removeMediaItem(i)
+//                        player!!.
+//                    }
+//                }
+//
+//                for (i in 0 .. secondPlayerItems) {
+//                    if (i > playerExtra!!.mediaItemCount) break
+//
+//                    val mediaItemSecond = playerExtra!!.getMediaItemAt(i)
+//
+//                    if (mediaItemSecond.mediaMetadata.title.toString().startsWith(playlist.name)) {
+//                        playerExtra!!.removeMediaItem(i)
+//                    }
+//
+//                }
+//            }
         }
     }
 
@@ -229,7 +253,6 @@ object MyPlayer : Player.Listener {
 
     private fun makeCrossFade(playerFirst: ExoPlayer, playerSecond: ExoPlayer) {
 
-        Timber.i("my log: enter in crossFade")
 
         val position = playerFirst.currentPosition
         val timeLeft = playerFirst.contentDuration - position
@@ -237,6 +260,7 @@ object MyPlayer : Player.Listener {
         val delay = timeLeft - 7000
         var delayValue = 0.7F
 
+        val startSong = playerFirst.currentMediaItem!!.mediaMetadata.title
 
         val timer = Timer()
 
@@ -248,7 +272,10 @@ object MyPlayer : Player.Listener {
                     return@launch
                 }
 
-                if (!playerSecond.isPlaying) {
+                val currentSong = playerFirst.currentMediaItem!!.mediaMetadata.title
+
+                if (!playerSecond.isPlaying && currentSong == startSong) {
+
 
                     Timber.i("my log: start change volumes")
                     playerFirst.volume = 0.9F
@@ -275,6 +302,7 @@ object MyPlayer : Player.Listener {
                     playerSecond.volume = 1F
                     playerFirst.volume = 0.0F
                     delay(650)
+
 
                     playerFirst.stop()
 

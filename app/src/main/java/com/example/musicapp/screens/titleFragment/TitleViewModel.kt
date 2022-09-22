@@ -5,8 +5,10 @@ import android.content.Context
 import androidx.lifecycle.*
 import com.example.musicapp.MyPlayer
 import com.example.musicapp.network.MusicApi
+import com.example.musicapp.network.musicProfile.Day
 import com.example.musicapp.network.musicProfile.MusicProfile
 import com.example.musicapp.network.musicProfile.Playlist
+import com.example.musicapp.network.musicProfile.PlaylistItem
 import com.google.android.exoplayer2.ExoPlayer
 import kotlinx.coroutines.*
 import timber.log.Timber
@@ -17,6 +19,10 @@ import java.net.URL
 private var _foldersPaths = mutableMapOf<String, String>()
 val foldersPaths: Map<String, String>
     get() = _foldersPaths
+
+private var _playlistItems = mutableMapOf<Day, List<PlaylistItem>>()
+val playlistItems: Map<Day, List<PlaylistItem>>
+    get() = _playlistItems
 
 class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationMy) {
 
@@ -69,8 +75,23 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
                 _playerExtra.value =
                     MyPlayer.getInstanceExtra(getApplication<Application>().applicationContext)
 
-                MyPlayer.setScheduleForPlayer(_profile.value!!)
+                _profile.value!!.schedule.days.forEach { day ->
+                    val items = mutableListOf<PlaylistItem>()
+                    day.timeZones.forEach { timeZone ->
+                        timeZone.playlistsOfZone.forEach { playlistsZone ->
+                            val item = PlaylistItem(
+                                timeZone.from,
+                                timeZone.to,
+                                playlistsZone.getPlaylist(_playlists.value!!),
+                                playlistsZone.proportion
+                            )
+                            items.add(item)
+                            _playlistItems[day] = items
+                        }
+                    }
+                }
 
+                MyPlayer.setScheduleForPlayer(_profile.value!!)
 
             } catch (e: Exception) {
                 throw e

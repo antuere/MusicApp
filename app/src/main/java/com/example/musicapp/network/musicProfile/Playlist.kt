@@ -1,6 +1,5 @@
 package com.example.musicapp.network.musicProfile
 
-import android.os.Parcelable
 import com.squareup.moshi.Json
 
 
