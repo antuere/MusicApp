@@ -10,6 +10,7 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.MediaMetadata
 import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.source.ShuffleOrder.DefaultShuffleOrder
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.File
@@ -18,7 +19,7 @@ import kotlin.concurrent.timerTask
 
 
 /* Singleton class for ExoPlayer, working with schedule.
-For crossFade effect we created 2 instance of ExoPlayer*/
+For crossFade effect we created 2 instances of ExoPlayer*/
 
 object MyPlayer : Player.Listener {
 
@@ -62,7 +63,7 @@ object MyPlayer : Player.Listener {
 
 /*   Made this once when app start first time  or after destroy.
 *    Set schedule rules based on profile instance, get days from profile,
-*    iterate on days, and when someone day from listDays match with current day,
+*    iterate on days, and when some day from listDays match with current day,
 *    we set timers for playlists */
 
     fun setScheduleForPlayer(profile: MusicProfile) {
@@ -78,6 +79,10 @@ object MyPlayer : Player.Listener {
         player!!.repeatMode = Player.REPEAT_MODE_ALL
         playerExtra!!.repeatMode = Player.REPEAT_MODE_ALL
 
+//        val shuffleOrder = DefaultShuffleOrder(intArrayOf(3,2,1,5,4,7,6,8), 1)
+//        player!!.setShuffleOrder(shuffleOrder)
+//        playerExtra!!.setShuffleOrder(shuffleOrder)
+
         player!!.shuffleModeEnabled = true
         playerExtra!!.shuffleModeEnabled = true
 
@@ -88,14 +93,12 @@ object MyPlayer : Player.Listener {
             val dayFromProfile = convertDayOfWeekToNumber(day.day.uppercase(), false)
 
             if (currentDayOnCalendar == dayFromProfile) {
-                Timber.i("error: in the if statement")
                 timezones = day.timeZones
                 timezones.forEach { timeZone ->
                     setTimer(timeZone, calendar)
                 }
             }
         }
-
     }
 
 /*    Set timer for timezone: time for playlist start and time for playlist end.
@@ -160,6 +163,7 @@ object MyPlayer : Player.Listener {
                     player!!.addMediaItem(resultSong)
                     playerExtra!!.addMediaItem(resultSong)
 
+
                 }
             }
 
@@ -168,6 +172,7 @@ object MyPlayer : Player.Listener {
             player!!.play()
 
             playerExtra!!.volume = 0F
+            playerExtra!!.seekToNextMediaItem()
 
         }
     }
