@@ -9,6 +9,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.databinding.DayItemBinding
 import com.example.musicapp.network.musicProfile.PlaylistItem
 
+
+/*Adapter for NESTED recycle view, for show
+* one playlist with time start, time end and proportion
+* */
+
 class ChildAdapter :
     ListAdapter<PlaylistItem, ChildAdapter.ChildViewHolder>(ChildDiffUtil()) {
 
@@ -41,6 +46,7 @@ class ChildAdapter :
                 val playlist = item.playlist
                 playListName.text = playlist.name
 
+//               Song integrity check: if current MD5 not match with required - show errorView
                 playlist.songs.forEach {
                     val check = it.checkMD5(foldersPaths[playlist.name] + "/${it.name}")
                     if (!check) {

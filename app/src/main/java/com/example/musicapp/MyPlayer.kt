@@ -16,6 +16,10 @@ import java.io.File
 import java.util.*
 import kotlin.concurrent.timerTask
 
+
+/* Singleton class for ExoPlayer, working with schedule.
+For crossFade effect we created 2 instance of ExoPlayer*/
+
 object MyPlayer : Player.Listener {
 
     @Volatile
@@ -56,6 +60,10 @@ object MyPlayer : Player.Listener {
         return myPlayer!!
     }
 
+/*   Made this once when app start first time  or after destroy.
+*    Set schedule rules based on profile instance, get days from profile,
+*    iterate on days, and when someone day from listDays match with current day,
+*    we set timers for playlists */
 
     fun setScheduleForPlayer(profile: MusicProfile) {
 
@@ -70,8 +78,8 @@ object MyPlayer : Player.Listener {
         player!!.repeatMode = Player.REPEAT_MODE_ALL
         playerExtra!!.repeatMode = Player.REPEAT_MODE_ALL
 
-//        player!!.shuffleModeEnabled = true
-//        playerExtra!!.shuffleModeEnabled = true
+        player!!.shuffleModeEnabled = true
+        playerExtra!!.shuffleModeEnabled = true
 
 
         days.forEach { day ->
@@ -90,6 +98,9 @@ object MyPlayer : Player.Listener {
 
     }
 
+/*    Set timer for timezone: time for playlist start and time for playlist end.
+*     Because work with Timer should come from MainThread, in TimerTask need use coroutines with
+*     dispatcher.Main */
     private fun setTimer(timeZone: TimeZone, calendar: Calendar) {
 
         val hoursStart = timeZone.from.substringBefore(":").toInt()
@@ -107,7 +118,6 @@ object MyPlayer : Player.Listener {
         }
         timerStart.schedule(timerTaskStart, calendar.time)
 
-
         calendar.set(Calendar.HOUR_OF_DAY, hoursEnd)
         calendar.set(Calendar.MINUTE, minutesEnd)
         calendar.set(Calendar.SECOND, 0)
@@ -123,7 +133,6 @@ object MyPlayer : Player.Listener {
         val scope = CoroutineScope(Dispatchers.Main)
 
         scope.launch {
-
             playerExtra!!.clearMediaItems()
             player!!.clearMediaItems()
             timeZone.playlistsOfZone.forEach { playlistsZone ->
@@ -248,11 +257,9 @@ object MyPlayer : Player.Listener {
             playerExtra!!.seekToNextMediaItem()
 
         }
-
     }
 
     private fun makeCrossFade(playerFirst: ExoPlayer, playerSecond: ExoPlayer) {
-
 
         val position = playerFirst.currentPosition
         val timeLeft = playerFirst.contentDuration - position
@@ -275,7 +282,6 @@ object MyPlayer : Player.Listener {
                 val currentSong = playerFirst.currentMediaItem!!.mediaMetadata.title
 
                 if (!playerSecond.isPlaying && currentSong == startSong) {
-
 
                     Timber.i("my log: start change volumes")
                     playerFirst.volume = 0.9F
@@ -303,9 +309,7 @@ object MyPlayer : Player.Listener {
                     playerFirst.volume = 0.0F
                     delay(650)
 
-
                     playerFirst.stop()
-
                 }
             }
         }

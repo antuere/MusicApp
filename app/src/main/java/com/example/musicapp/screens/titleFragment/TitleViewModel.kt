@@ -24,6 +24,7 @@ private var _playlistItems = mutableMapOf<Day, List<PlaylistItem>>()
 val playlistItems: Map<Day, List<PlaylistItem>>
     get() = _playlistItems
 
+
 class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationMy) {
 
 
@@ -54,10 +55,16 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
 
 
     init {
-        getResponseFromServer()
+        firstInitial()
     }
 
-    private fun getResponseFromServer() {
+
+    /*Made its once on start app:
+    * 1)get response from server
+    * 2)download songs in the phone
+    * 3)after download songs, set schedule for player
+    * */
+    private fun firstInitial() {
         Timber.i("my log we in the getResponseServer")
         viewModelScope.launch {
             try {
@@ -99,7 +106,7 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
         }
     }
 
-
+    //Download ALL songs from profile
     private suspend fun downloadMusicFiles() {
         _playlists.value!!.forEach { playlist ->
             playlist.songs.forEach { song ->
@@ -115,6 +122,7 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
 
     }
 
+    // Download ONE song from URL and write folderPath
     private fun downloadMusicFileFromUrl(
         urlString: String, fileName: String, context: Context, playlist: String
     ): Job {

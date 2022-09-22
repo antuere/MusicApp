@@ -3,6 +3,8 @@ package com.example.musicapp.network.musicProfile
 import java.text.SimpleDateFormat
 import java.util.*
 
+
+// Class for convenient interaction and display of information in nested RecycleView
 data class PlaylistItem(
 
     val from: String,

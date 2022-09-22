@@ -13,6 +13,12 @@ import com.example.musicapp.network.musicProfile.Day
 import kotlinx.coroutines.*
 import java.util.*
 
+
+
+/*Adapter for MAIN recycle view, just for show single day
+* with nested recycle view. Nested recycle view showing
+* one playlist with time start, time end and proportion*/
+
 class MainAdapter :
     ListAdapter<Day, MainAdapter.TitleViewHolder>(MyDiffCallBack()) {
 

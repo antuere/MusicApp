@@ -41,6 +41,7 @@ class TitleFragment : Fragment() {
 
         viewModel = ViewModelProvider(this, factory)[TitleViewModel::class.java]
 
+//      Observe profile and when he is not null,  change title for ActionBar on name of profile
         viewModel.profile.observe(viewLifecycleOwner) {
             Timber.i("my log Music profile has name(in liveData) is ${it?.name ?: "null"}")
             it?.let {
@@ -48,12 +49,9 @@ class TitleFragment : Fragment() {
             }
         }
 
-        viewModel.playlists.observe(viewLifecycleOwner) {
-            it?.let {
-                Timber.i("my log we in playlist LiveData and his size ${it.size}")
-            }
-        }
 
+        /*Show main recycleView when profile success download and hide progress bar,
+        else just show progress bar */
         viewModel.renderUI.observe(viewLifecycleOwner) {
             if (it) {
                 val profile = viewModel.profile.value!!
@@ -76,6 +74,7 @@ class TitleFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+    //If retrofit throw Error : app will not crash, instead this we will show toast with error message
         viewModel.showError.observe(viewLifecycleOwner) {
             it?.let {
                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -83,9 +82,7 @@ class TitleFragment : Fragment() {
             }
         }
 
-
         val menuHost: MenuHost = requireActivity()
-
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.play_menu, menu)
@@ -107,6 +104,8 @@ class TitleFragment : Fragment() {
 
     }
 
+
+    // Stop players when app destroy
     override fun onDestroy() {
         super.onDestroy()
         viewModel.player.observe(viewLifecycleOwner) {
