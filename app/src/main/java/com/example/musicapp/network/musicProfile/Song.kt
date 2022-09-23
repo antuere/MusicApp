@@ -23,6 +23,9 @@ data class Song(
     val size: Int
 ) : Comparable<Song> {
 
+    lateinit var playlist: String
+    lateinit var pathToFile : String
+
     override fun compareTo(other: Song): Int {
         return this.order - other.order
     }
@@ -53,4 +56,7 @@ data class Song(
         return result == requestMD5
     }
 
+    override fun toString(): String {
+        return this.name
+    }
 }

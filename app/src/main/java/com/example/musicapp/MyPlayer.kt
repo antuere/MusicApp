@@ -31,9 +31,11 @@ object MyPlayer : Player.Listener {
     private var playerExtra: ExoPlayer? = null
 
     private lateinit var playlistsDownload: List<Playlist>
+    private lateinit var playlistsRequired: MutableList<PlaylistsZone>
 
     private var durationSet = false
     private var doCrossFade = false
+
 
     fun getInstanceMain(context: Context): ExoPlayer {
         var myPlayer = player
@@ -124,73 +126,55 @@ object MyPlayer : Player.Listener {
     }
 
     private fun startPlay(timeZone: TimeZone) {
-
-        var songsAmount = 0
+        Timber.i("my log : enter in startPlay for $timeZone")
         val scope = CoroutineScope(Dispatchers.Main)
         scope.launch {
             playerExtra!!.clearMediaItems()
             player!!.clearMediaItems()
-            val requiredPlaylists = mutableListOf<PlaylistsZone>()
+            playlistsRequired = mutableListOf()
 
             timeZone.playlistsOfZone.forEach { playlistsZone ->
-
-                requiredPlaylists.add(playlistsZone)
-                val playlist = playlistsZone.getPlaylist(playlistsDownload)
-                playlist.songs.forEach {
-                    val path = foldersPaths[playlist.name] + "/${it.name}"
-
-//                   Uncomment this when testing on real device
-//                    if (it.checkMD5(path)) {
-
-
-
-                }
-//            }
-
+                playlistsRequired.add(playlistsZone)
             }
 
-            val playlistsZonesSorted = requiredPlaylists.sortedBy { it.proportion }
-
-            val groupedPlaylists = playlistsZonesSorted.groupBy { it.proportion }
-
-//            val songs = groupedPlaylists.flatMap { (prop, playlists) ->
-//                playlists.flatMap { playlistZone ->
-//                    IntRange(0, prop).map { playlistZone.playlistId }
-//                }
-//            }
-
-            val songs = groupedPlaylists.flatMap { (prop, playlists) ->
-                playlists.flatMap { playlistZone ->
-                    val playlist = playlistZone.getPlaylist(playlistsDownload)
-                    playlist.songs.flatMap { song ->
-                        IntRange(0, prop).map { foldersPaths[playlist.name]+ "/${song.name}" }
-                    }
-                }
-            }
-
-            songs.forEach {
-                val uri = Uri.fromFile(File(it))
-                val mediaItem = MediaItem.fromUri(uri)
-
-//                val song = mediaItem.mediaMetadata.buildUpon()
-//                    .setTitle("${playlist.name} - ${it.name}").build()
-
-//                val resultSong = mediaItem.buildUpon().setMediaMetadata(song).build()
-
-//                songsAmount++
-                player!!.addMediaItem(mediaItem)
-                playerExtra!!.addMediaItem(mediaItem)
-            }
-
-
-            player!!.repeatMode = Player.REPEAT_MODE_ALL
-            playerExtra!!.repeatMode = Player.REPEAT_MODE_ALL
+            addSongsToPlaylist(playlistsRequired)
 
             player!!.prepare()
             player!!.play()
 
             playerExtra!!.volume = 0F
 
+        }
+    }
+
+    private fun addSongsToPlaylist(requiredPlaylists: MutableList<PlaylistsZone>) {
+        val playlistsZonesSorted = requiredPlaylists.sortedBy { it.proportion }
+        val groupedPlaylists: Map<Int, List<PlaylistsZone>> =
+            playlistsZonesSorted.groupBy { it.proportion }
+
+        val songs = groupedPlaylists.flatMap { (prop, playlists) ->
+            playlists.flatMap { playlistZone ->
+                val playlist = playlistZone.getPlaylist(playlistsDownload)
+                val song = playlist.songs.random()
+                song.playlist = playlist.name
+                song.pathToFile = foldersPaths[playlist.name] + "/${song.name}"
+                (0 until prop).map { song }
+            }
+        }
+        Timber.i("songs : ${songs.toString()}")
+        songs.forEach {
+            if (it.checkMD5(it.pathToFile)) {
+                val uri = Uri.fromFile(File(it.pathToFile))
+                val mediaItem = MediaItem.fromUri(uri)
+
+                val song = mediaItem.mediaMetadata.buildUpon()
+                    .setTitle("${it.playlist} - ${it.name}").build()
+
+                val resultSong = mediaItem.buildUpon().setMediaMetadata(song).build()
+
+                player!!.addMediaItem(resultSong)
+                playerExtra!!.addMediaItem(resultSong)
+            }
         }
     }
 
@@ -216,37 +200,6 @@ object MyPlayer : Player.Listener {
             * need delete from player all songs
             * that belong to the finished playlist
             */
-
-//            timeZone.playlistsOfZone.forEach {
-//
-//                val firstPlayerItems = player!!.mediaItemCount
-//                val secondPlayerItems = playerExtra!!.mediaItemCount
-//
-//                val playlist = it.getPlaylist(playlists)
-//
-//                for (i in 0 .. firstPlayerItems) {
-//
-//                    if (i > player!!.mediaItemCount) break
-//
-//                    val mediaItemFirst = player!!.getMediaItemAt(i)
-//
-//                    if (mediaItemFirst.mediaMetadata.title.toString().startsWith(playlist.name)) {
-//                        player!!.removeMediaItem(i)
-//                        player!!.
-//                    }
-//                }
-//
-//                for (i in 0 .. secondPlayerItems) {
-//                    if (i > playerExtra!!.mediaItemCount) break
-//
-//                    val mediaItemSecond = playerExtra!!.getMediaItemAt(i)
-//
-//                    if (mediaItemSecond.mediaMetadata.title.toString().startsWith(playlist.name)) {
-//                        playerExtra!!.removeMediaItem(i)
-//                    }
-//
-//                }
-//            }
         }
     }
 
@@ -263,6 +216,10 @@ object MyPlayer : Player.Listener {
 
 
     override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+
+        if(!player!!.hasNextMediaItem() && !playerExtra!!.hasNextMediaItem()){
+            addSongsToPlaylist(playlistsRequired)
+        }
 
         if (player!!.volume == 1F && playerExtra!!.volume == 0.0F && doCrossFade) {
             makeCrossFade(player!!, playerExtra!!)
@@ -349,7 +306,6 @@ object MyPlayer : Player.Listener {
             }
         }
         timer.schedule(timerTask, delay)
-
     }
 }
 

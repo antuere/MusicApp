@@ -72,10 +72,8 @@ class PlayerFragment : Fragment() {
 
             if (it) {
                 playerView.player = viewModel.mainPlayer.value
-                val titleStr = "Main" + viewModel.mainPlayer.value!!.mediaMetadata.title
                 title.text =
                     viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
-                title.text = titleStr
 
             } else {
                 playerView.player = viewModel.extraPlayer.value
