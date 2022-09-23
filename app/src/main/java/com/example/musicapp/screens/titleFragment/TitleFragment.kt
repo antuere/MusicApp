@@ -41,7 +41,7 @@ class TitleFragment : Fragment() {
 
         viewModel = ViewModelProvider(this, factory)[TitleViewModel::class.java]
 
-//      Observe profile and when he is not null,  change title for ActionBar on name of profile
+//      Observe profile and when he is not null, change title for ActionBar on name of profile
         viewModel.profile.observe(viewLifecycleOwner) {
             Timber.i("my log Music profile has name(in liveData) is ${it?.name ?: "null"}")
             it?.let {
@@ -105,15 +105,15 @@ class TitleFragment : Fragment() {
     }
 
 
-    // Stop players when app destroy
+    // Release players when app destroy
     override fun onDestroy() {
         super.onDestroy()
         viewModel.player.observe(viewLifecycleOwner) {
-            it?.stop()
+            it?.release()
         }
 
         viewModel.playerExtra.observe(viewLifecycleOwner) {
-            it?.stop()
+            it?.release()
         }
     }
 

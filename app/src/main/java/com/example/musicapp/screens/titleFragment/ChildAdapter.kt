@@ -11,8 +11,7 @@ import com.example.musicapp.network.musicProfile.PlaylistItem
 
 
 /*Adapter for NESTED recycle view, for show
-* one playlist with time start, time end and proportion
-* */
+* one playlist with time start, time end and proportion */
 
 class ChildAdapter :
     ListAdapter<PlaylistItem, ChildAdapter.ChildViewHolder>(ChildDiffUtil()) {

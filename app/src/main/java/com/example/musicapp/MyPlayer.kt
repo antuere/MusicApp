@@ -4,13 +4,14 @@ import android.content.Context
 import android.net.Uri
 import com.example.musicapp.network.musicProfile.MusicProfile
 import com.example.musicapp.network.musicProfile.Playlist
+import com.example.musicapp.network.musicProfile.PlaylistsZone
 import com.example.musicapp.network.musicProfile.TimeZone
 import com.example.musicapp.screens.titleFragment.foldersPaths
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.MediaMetadata
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.source.ShuffleOrder.DefaultShuffleOrder
+import com.google.android.exoplayer2.source.ShuffleOrder
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.File
@@ -29,7 +30,7 @@ object MyPlayer : Player.Listener {
     @Volatile
     private var playerExtra: ExoPlayer? = null
 
-    private lateinit var playlists: List<Playlist>
+    private lateinit var playlistsDownload: List<Playlist>
 
     private var durationSet = false
     private var doCrossFade = false
@@ -61,7 +62,7 @@ object MyPlayer : Player.Listener {
         return myPlayer!!
     }
 
-/*   Made this once when app start first time  or after destroy.
+/*   Made this once when app start first time or after destroy.
 *    Set schedule rules based on profile instance, get days from profile,
 *    iterate on days, and when some day from listDays match with current day,
 *    we set timers for playlists */
@@ -71,21 +72,10 @@ object MyPlayer : Player.Listener {
         val days = profile.schedule.days
         lateinit var timezones: List<TimeZone>
         lateinit var calendar: Calendar
-        playlists = profile.schedule.playlists
+        playlistsDownload = profile.schedule.playlists
 
         player!!.addListener(this)
         playerExtra!!.addListener(this)
-
-        player!!.repeatMode = Player.REPEAT_MODE_ALL
-        playerExtra!!.repeatMode = Player.REPEAT_MODE_ALL
-
-//        val shuffleOrder = DefaultShuffleOrder(intArrayOf(3,2,1,5,4,7,6,8), 1)
-//        player!!.setShuffleOrder(shuffleOrder)
-//        playerExtra!!.setShuffleOrder(shuffleOrder)
-
-        player!!.shuffleModeEnabled = true
-        playerExtra!!.shuffleModeEnabled = true
-
 
         days.forEach { day ->
             calendar = Calendar.getInstance()
@@ -104,6 +94,7 @@ object MyPlayer : Player.Listener {
 /*    Set timer for timezone: time for playlist start and time for playlist end.
 *     Because work with Timer should come from MainThread, in TimerTask need use coroutines with
 *     dispatcher.Main */
+
     private fun setTimer(timeZone: TimeZone, calendar: Calendar) {
 
         val hoursStart = timeZone.from.substringBefore(":").toInt()
@@ -133,46 +124,72 @@ object MyPlayer : Player.Listener {
     }
 
     private fun startPlay(timeZone: TimeZone) {
-        val scope = CoroutineScope(Dispatchers.Main)
 
+        var songsAmount = 0
+        val scope = CoroutineScope(Dispatchers.Main)
         scope.launch {
             playerExtra!!.clearMediaItems()
             player!!.clearMediaItems()
+            val requiredPlaylists = mutableListOf<PlaylistsZone>()
+
             timeZone.playlistsOfZone.forEach { playlistsZone ->
-                val playlist = playlistsZone.getPlaylist(playlists)
+
+                requiredPlaylists.add(playlistsZone)
+                val playlist = playlistsZone.getPlaylist(playlistsDownload)
                 playlist.songs.forEach {
                     val path = foldersPaths[playlist.name] + "/${it.name}"
+
+//                   Uncomment this when testing on real device
 //                    if (it.checkMD5(path)) {
-//                        val uri = Uri.fromFile(File(path))
-//                        val mediaItem = MediaItem.fromUri(uri)
-//
-//                        player!!.addMediaItem(mediaItem)
-//                        playerExtra!!.addMediaItem(mediaItem)
-//
-//
-//                    }
 
-                    val uri = Uri.fromFile(File(path))
-                    val mediaItem = MediaItem.fromUri(uri)
-
-                    val song = mediaItem.mediaMetadata.buildUpon()
-                        .setTitle("${playlist.name} - ${it.name}").build()
-
-                    val resultSong = mediaItem.buildUpon().setMediaMetadata(song).build()
-
-                    player!!.addMediaItem(resultSong)
-                    playerExtra!!.addMediaItem(resultSong)
 
 
                 }
+//            }
+
             }
 
+            val playlistsZonesSorted = requiredPlaylists.sortedBy { it.proportion }
+
+            val groupedPlaylists = playlistsZonesSorted.groupBy { it.proportion }
+
+//            val songs = groupedPlaylists.flatMap { (prop, playlists) ->
+//                playlists.flatMap { playlistZone ->
+//                    IntRange(0, prop).map { playlistZone.playlistId }
+//                }
+//            }
+
+            val songs = groupedPlaylists.flatMap { (prop, playlists) ->
+                playlists.flatMap { playlistZone ->
+                    val playlist = playlistZone.getPlaylist(playlistsDownload)
+                    playlist.songs.flatMap { song ->
+                        IntRange(0, prop).map { foldersPaths[playlist.name]+ "/${song.name}" }
+                    }
+                }
+            }
+
+            songs.forEach {
+                val uri = Uri.fromFile(File(it))
+                val mediaItem = MediaItem.fromUri(uri)
+
+//                val song = mediaItem.mediaMetadata.buildUpon()
+//                    .setTitle("${playlist.name} - ${it.name}").build()
+
+//                val resultSong = mediaItem.buildUpon().setMediaMetadata(song).build()
+
+//                songsAmount++
+                player!!.addMediaItem(mediaItem)
+                playerExtra!!.addMediaItem(mediaItem)
+            }
+
+
+            player!!.repeatMode = Player.REPEAT_MODE_ALL
+            playerExtra!!.repeatMode = Player.REPEAT_MODE_ALL
+
             player!!.prepare()
-            playerExtra!!.prepare()
             player!!.play()
 
             playerExtra!!.volume = 0F
-            playerExtra!!.seekToNextMediaItem()
 
         }
     }
@@ -183,17 +200,22 @@ object MyPlayer : Player.Listener {
         val scope = CoroutineScope(Dispatchers.Main)
         scope.launch {
 
-            player!!.stop()
-            playerExtra!!.stop()
-
             player!!.volume = 1F
             playerExtra!!.volume = 1F
+
+            player!!.stop()
+            playerExtra!!.stop()
 
             durationSet = false
             doCrossFade = false
 
             playerExtra!!.clearMediaItems()
             player!!.clearMediaItems()
+
+            /*Need fix this later, main point :
+            * need delete from player all songs
+            * that belong to the finished playlist
+            */
 
 //            timeZone.playlistsOfZone.forEach {
 //
@@ -252,6 +274,11 @@ object MyPlayer : Player.Listener {
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
 
+        if (!player!!.isPlaying && !playerExtra!!.isPlaying) {
+            player!!.seekToNextMediaItem()
+            playerExtra!!.seekToNextMediaItem()
+            return
+        }
         if (!player!!.isPlaying) {
 
             player!!.seekToNextMediaItem()
@@ -262,6 +289,7 @@ object MyPlayer : Player.Listener {
             playerExtra!!.seekToNextMediaItem()
 
         }
+
     }
 
     private fun makeCrossFade(playerFirst: ExoPlayer, playerSecond: ExoPlayer) {
@@ -269,6 +297,8 @@ object MyPlayer : Player.Listener {
         val position = playerFirst.currentPosition
         val timeLeft = playerFirst.contentDuration - position
 
+
+//        Start crossFade effect 7 seconds before the end of the song
         val delay = timeLeft - 7000
         var delayValue = 0.7F
 

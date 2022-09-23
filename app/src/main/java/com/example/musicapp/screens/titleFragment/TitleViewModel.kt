@@ -16,13 +16,13 @@ import java.io.*
 import java.lang.Exception
 import java.net.URL
 
-private var _foldersPaths = mutableMapOf<String, String>()
+private var foldersPathsPrivate = mutableMapOf<String, String>()
 val foldersPaths: Map<String, String>
-    get() = _foldersPaths
+    get() = foldersPathsPrivate
 
-private var _playlistItems = mutableMapOf<Day, List<PlaylistItem>>()
+private var playlistItemsPrivate = mutableMapOf<Day, List<PlaylistItem>>()
 val playlistItems: Map<Day, List<PlaylistItem>>
-    get() = _playlistItems
+    get() = playlistItemsPrivate
 
 
 class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationMy) {
@@ -42,8 +42,6 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
         get() = _playerExtra
 
     private var _playlists = MutableLiveData<List<Playlist>>()
-    val playlists: LiveData<List<Playlist>>
-        get() = _playlists
 
     private val _showError = MutableLiveData<String>()
     val showError: LiveData<String>
@@ -61,6 +59,7 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
 
     /*Made its once on start app:
     * 1)get response from server
+    * 1.1) if get error from retrofit, then show Toast with error message
     * 2)download songs in the phone
     * 3)after download songs, set schedule for player
     * */
@@ -93,7 +92,7 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
                                 playlistsZone.proportion
                             )
                             items.add(item)
-                            _playlistItems[day] = items
+                            playlistItemsPrivate[day] = items
                         }
                     }
                 }
@@ -101,7 +100,7 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
                 MyPlayer.setScheduleForPlayer(_profile.value!!)
 
             } catch (e: Exception) {
-                throw e
+                _showError.value = e.message
             }
         }
     }
@@ -138,7 +137,7 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
             val directory = File(directoryString)
 
             if (!foldersPaths.containsKey(playlist)) {
-                _foldersPaths[playlist] = directoryString
+                foldersPathsPrivate[playlist] = directoryString
             }
 
             if (!directory.exists()) {
