@@ -10,6 +10,7 @@ import com.example.musicapp.MyPlayer
 import com.example.musicapp.databinding.DayItemBinding
 import com.example.musicapp.network.musicProfile.PlaylistItem
 import com.example.musicapp.network.musicProfile.PlaylistsZone
+import timber.log.Timber
 
 
 /*Adapter for NESTED recycle view, for show
@@ -42,6 +43,7 @@ class ChildAdapter :
         fun bind(item: PlaylistItem) {
             with(binding) {
                 val timeTextString = "${item.from} - ${item.to}"
+
                 timeText.text = timeTextString
 
                 val playlist = item.playlist
@@ -63,12 +65,14 @@ class ChildAdapter :
                 buttonLeft.setOnClickListener {
                     MyPlayer.playlistsRequired.forEach {
                         if (it.playlistId == item.playlist.id) {
-                            it.proportion--
-                            if (it.proportion < 1) {
+                            if(proportion.text.toString().toInt() == 1) {
                                 return@setOnClickListener
-                            } else proportion.text = it.proportion.toString()
+                            }
+                            it.proportion--
+                            proportion.text = it.proportion.toString()
                         }
                     }
+                    MyPlayer.updateMusic()
                 }
 
                 buttonRight.setOnClickListener {
@@ -78,6 +82,8 @@ class ChildAdapter :
                             proportion.text = it.proportion.toString()
                         }
                     }
+                    MyPlayer.updateMusic()
+
                 }
 
             }

@@ -145,17 +145,42 @@ object MyPlayer : Player.Listener {
         }
     }
 
+    fun updateMusic() {
+        if (player != null && playerExtra != null) {
+            player!!.volume = 1F
+            playerExtra!!.volume = 1F
+
+            durationSet = false
+            doCrossFade = false
+            isAddNew = false
+
+            player!!.stop()
+            playerExtra!!.stop()
+
+            player!!.clearMediaItems()
+            playerExtra!!.clearMediaItems()
+
+            addSongsToPlaylist(playlistsRequired)
+            isAddNew = true
+
+            player!!.prepare()
+            player!!.play()
+
+            playerExtra!!.volume = 0F
+        }
+    }
+
     private fun addSongsToPlaylist(requiredPlaylists: MutableList<PlaylistsZone>) {
 
         val playlistsZonesSorted = requiredPlaylists.sortedBy { it.proportion }
         val groupedPlaylists: Map<Int, List<PlaylistsZone>> =
             playlistsZonesSorted.groupBy { it.proportion }
 
-        val songs : MutableList<Song> = mutableListOf()
+        val songs: MutableList<Song> = mutableListOf()
         groupedPlaylists.forEach { (prop, playlists) ->
             playlists.forEach { playlistsZone ->
                 val playlist = playlistsZone.getPlaylist(playlistsDownload)
-                for( i in 0 until prop){
+                for (i in 0 until prop) {
                     val song = playlist.songs.random()
                     song.playlist = playlist.name
                     song.pathToFile = foldersPaths[playlist.name] + "/${song.name}"
@@ -221,30 +246,7 @@ object MyPlayer : Player.Listener {
 
     }
 
-
-//    override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-//
-//        if (!player!!.hasNextMediaItem() && !playerExtra!!.hasNextMediaItem() && isAddNew) {
-//            Timber.i("my log: enter in addSongs")
-//            addSongsToPlaylist(playlistsRequired)
-//        }
-//
-//        if (player!!.volume == 1F && playerExtra!!.volume == 0.0F && doCrossFade) {
-//            Timber.i("my log: mediaChange for main")
-//            makeCrossFade(player!!, playerExtra!!)
-//
-//        } else if (player!!.volume == 0.0F && playerExtra!!.volume == 1F && doCrossFade) {
-//            Timber.i("my log: mediaChange for extra")
-//            makeCrossFade(playerExtra!!, player!!)
-//        }
-//    }
-
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-
-        if (!player!!.hasNextMediaItem() && !playerExtra!!.hasNextMediaItem() && isAddNew) {
-            Timber.i("my log: enter in addSongs")
-            addSongsToPlaylist(playlistsRequired)
-        }
 
         if (player!!.volume == 1F && playerExtra!!.volume == 0.0F && doCrossFade) {
             Timber.i("my log: mediaChange for main")
@@ -255,18 +257,23 @@ object MyPlayer : Player.Listener {
             makeCrossFade(playerExtra!!, player!!)
         }
 
+        if (!player!!.hasNextMediaItem() && !playerExtra!!.hasNextMediaItem() && isAddNew) {
+            Timber.i("my log: enter in addSongs")
+            addSongsToPlaylist(playlistsRequired)
+        }
+
+
     }
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
 
         Timber.i("my log: enter onIsPlayChanged")
 
-//        if (!player!!.isPlaying && !playerExtra!!.isPlaying) {
-//            Timber.i("my log: all players stop")
-//            player!!.seekToNextMediaItem()
-//            playerExtra!!.seekToNextMediaItem()
-//            return
-//        }
+        if (!player!!.isPlaying && !playerExtra!!.isPlaying && isAddNew) {
+            Timber.i("my log: all players stop")
+            player!!.seekToNextMediaItem()
+            return
+        }
 
         if (!player!!.isPlaying) {
             Timber.i("my log: main player stop")

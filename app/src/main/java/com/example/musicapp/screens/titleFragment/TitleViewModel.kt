@@ -20,8 +20,8 @@ private var foldersPathsPrivate = mutableMapOf<String, String>()
 val foldersPaths: Map<String, String>
     get() = foldersPathsPrivate
 
-private var playlistItemsPrivate = mutableMapOf<Day, MutableList<PlaylistItem>>()
-val playlistItems: Map<Day, MutableList<PlaylistItem>>
+private var playlistItemsPrivate = mutableMapOf<String, List<PlaylistItem>>()
+val playlistItems: Map<String, List<PlaylistItem>>
     get() = playlistItemsPrivate
 
 
@@ -73,7 +73,6 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
 
                 downloadMusicFiles()
 
-                _renderUI.value = true
                 Timber.i("my log folders : $foldersPaths")
 
                 _player.value =
@@ -89,15 +88,16 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
                                 timeZone.from,
                                 timeZone.to,
                                 playlistsZone.getPlaylist(_playlists.value!!),
-                                playlistsZone.proportion
                             )
                             items.add(item)
-                            playlistItemsPrivate[day] = items
+                            playlistItemsPrivate[day.day] = items
                         }
                     }
                 }
 
                 MyPlayer.setScheduleForPlayer(_profile.value!!)
+                _renderUI.value = true
+
 
             } catch (e: Exception) {
                 _showError.value = e.message
