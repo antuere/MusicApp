@@ -20,8 +20,8 @@ private var foldersPathsPrivate = mutableMapOf<String, String>()
 val foldersPaths: Map<String, String>
     get() = foldersPathsPrivate
 
-private var playlistItemsPrivate = mutableMapOf<Day, List<PlaylistItem>>()
-val playlistItems: Map<Day, List<PlaylistItem>>
+private var playlistItemsPrivate = mutableMapOf<Day, MutableList<PlaylistItem>>()
+val playlistItems: Map<Day, MutableList<PlaylistItem>>
     get() = playlistItemsPrivate
 
 

@@ -64,7 +64,6 @@ class MainAdapter :
             }
 
             binding.header.text = item.day.replaceFirstChar { it.titlecaseChar() }
-
             val childAdapter = ChildAdapter()
             binding.nestedRecycleView.adapter = childAdapter
 

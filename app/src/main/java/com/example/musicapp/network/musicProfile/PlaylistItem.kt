@@ -11,7 +11,7 @@ data class PlaylistItem(
     val to: String,
 
     val playlist: Playlist,
-    val proportion: Int
+    var proportion: Int
 ) : Comparable<TimeZone> {
 
     override fun compareTo(other: TimeZone): Int {

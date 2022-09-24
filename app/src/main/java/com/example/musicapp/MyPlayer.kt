@@ -2,16 +2,12 @@ package com.example.musicapp
 
 import android.content.Context
 import android.net.Uri
-import com.example.musicapp.network.musicProfile.MusicProfile
-import com.example.musicapp.network.musicProfile.Playlist
-import com.example.musicapp.network.musicProfile.PlaylistsZone
+import com.example.musicapp.network.musicProfile.*
 import com.example.musicapp.network.musicProfile.TimeZone
 import com.example.musicapp.screens.titleFragment.foldersPaths
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.MediaMetadata
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.source.ShuffleOrder
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.File
@@ -31,10 +27,11 @@ object MyPlayer : Player.Listener {
     private var playerExtra: ExoPlayer? = null
 
     private lateinit var playlistsDownload: List<Playlist>
-    private lateinit var playlistsRequired: MutableList<PlaylistsZone>
+    lateinit var playlistsRequired: MutableList<PlaylistsZone>
 
     private var durationSet = false
     private var doCrossFade = false
+    private var isAddNew = true
 
 
     fun getInstanceMain(context: Context): ExoPlayer {
@@ -131,6 +128,7 @@ object MyPlayer : Player.Listener {
         scope.launch {
             playerExtra!!.clearMediaItems()
             player!!.clearMediaItems()
+
             playlistsRequired = mutableListOf()
 
             timeZone.playlistsOfZone.forEach { playlistsZone ->
@@ -138,7 +136,7 @@ object MyPlayer : Player.Listener {
             }
 
             addSongsToPlaylist(playlistsRequired)
-
+            isAddNew = true
             player!!.prepare()
             player!!.play()
 
@@ -148,32 +146,38 @@ object MyPlayer : Player.Listener {
     }
 
     private fun addSongsToPlaylist(requiredPlaylists: MutableList<PlaylistsZone>) {
+
         val playlistsZonesSorted = requiredPlaylists.sortedBy { it.proportion }
         val groupedPlaylists: Map<Int, List<PlaylistsZone>> =
             playlistsZonesSorted.groupBy { it.proportion }
 
-        val songs = groupedPlaylists.flatMap { (prop, playlists) ->
-            playlists.flatMap { playlistZone ->
-                val playlist = playlistZone.getPlaylist(playlistsDownload)
-                val song = playlist.songs.random()
-                song.playlist = playlist.name
-                song.pathToFile = foldersPaths[playlist.name] + "/${song.name}"
-                (0 until prop).map { song }
+        val songs : MutableList<Song> = mutableListOf()
+        groupedPlaylists.forEach { (prop, playlists) ->
+            playlists.forEach { playlistsZone ->
+                val playlist = playlistsZone.getPlaylist(playlistsDownload)
+                for( i in 0 until prop){
+                    val song = playlist.songs.random()
+                    song.playlist = playlist.name
+                    song.pathToFile = foldersPaths[playlist.name] + "/${song.name}"
+                    songs.add(song)
+                }
             }
         }
-        Timber.i("songs : ${songs.toString()}")
-        songs.forEach {
-            if (it.checkMD5(it.pathToFile)) {
-                val uri = Uri.fromFile(File(it.pathToFile))
-                val mediaItem = MediaItem.fromUri(uri)
+        Timber.i("my log songs : ${songs.toString()}")
+        if (songs.isNotEmpty()) {
+            songs.forEach {
+                if (it.checkMD5(it.pathToFile)) {
+                    val uri = Uri.fromFile(File(it.pathToFile))
+                    val mediaItem = MediaItem.fromUri(uri)
 
-                val song = mediaItem.mediaMetadata.buildUpon()
-                    .setTitle("${it.playlist} - ${it.name}").build()
+                    val song = mediaItem.mediaMetadata.buildUpon()
+                        .setTitle("${it.playlist} - ${it.name}").build()
 
-                val resultSong = mediaItem.buildUpon().setMediaMetadata(song).build()
+                    val resultSong = mediaItem.buildUpon().setMediaMetadata(song).build()
 
-                player!!.addMediaItem(resultSong)
-                playerExtra!!.addMediaItem(resultSong)
+                    player!!.addMediaItem(resultSong)
+                    playerExtra!!.addMediaItem(resultSong)
+                }
             }
         }
     }
@@ -193,8 +197,11 @@ object MyPlayer : Player.Listener {
             durationSet = false
             doCrossFade = false
 
+
+            isAddNew = false
             playerExtra!!.clearMediaItems()
             player!!.clearMediaItems()
+            playlistsRequired = mutableListOf()
 
             /*Need fix this later, main point :
             * need delete from player all songs
@@ -215,38 +222,64 @@ object MyPlayer : Player.Listener {
     }
 
 
-    override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+//    override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+//
+//        if (!player!!.hasNextMediaItem() && !playerExtra!!.hasNextMediaItem() && isAddNew) {
+//            Timber.i("my log: enter in addSongs")
+//            addSongsToPlaylist(playlistsRequired)
+//        }
+//
+//        if (player!!.volume == 1F && playerExtra!!.volume == 0.0F && doCrossFade) {
+//            Timber.i("my log: mediaChange for main")
+//            makeCrossFade(player!!, playerExtra!!)
+//
+//        } else if (player!!.volume == 0.0F && playerExtra!!.volume == 1F && doCrossFade) {
+//            Timber.i("my log: mediaChange for extra")
+//            makeCrossFade(playerExtra!!, player!!)
+//        }
+//    }
 
-        if(!player!!.hasNextMediaItem() && !playerExtra!!.hasNextMediaItem()){
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+
+        if (!player!!.hasNextMediaItem() && !playerExtra!!.hasNextMediaItem() && isAddNew) {
+            Timber.i("my log: enter in addSongs")
             addSongsToPlaylist(playlistsRequired)
         }
 
         if (player!!.volume == 1F && playerExtra!!.volume == 0.0F && doCrossFade) {
+            Timber.i("my log: mediaChange for main")
             makeCrossFade(player!!, playerExtra!!)
 
         } else if (player!!.volume == 0.0F && playerExtra!!.volume == 1F && doCrossFade) {
+            Timber.i("my log: mediaChange for extra")
             makeCrossFade(playerExtra!!, player!!)
         }
+
     }
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
 
-        if (!player!!.isPlaying && !playerExtra!!.isPlaying) {
-            player!!.seekToNextMediaItem()
-            playerExtra!!.seekToNextMediaItem()
-            return
-        }
-        if (!player!!.isPlaying) {
+        Timber.i("my log: enter onIsPlayChanged")
 
+//        if (!player!!.isPlaying && !playerExtra!!.isPlaying) {
+//            Timber.i("my log: all players stop")
+//            player!!.seekToNextMediaItem()
+//            playerExtra!!.seekToNextMediaItem()
+//            return
+//        }
+
+        if (!player!!.isPlaying) {
+            Timber.i("my log: main player stop")
             player!!.seekToNextMediaItem()
 
         }
         if (!playerExtra!!.isPlaying) {
-
+            Timber.i("my log: extra player stop")
             playerExtra!!.seekToNextMediaItem()
 
         }
 
+        Timber.i("my log: exit onIsPlayChanged")
     }
 
     private fun makeCrossFade(playerFirst: ExoPlayer, playerSecond: ExoPlayer) {

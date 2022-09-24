@@ -6,8 +6,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.musicapp.MyPlayer
 import com.example.musicapp.databinding.DayItemBinding
 import com.example.musicapp.network.musicProfile.PlaylistItem
+import com.example.musicapp.network.musicProfile.PlaylistsZone
 
 
 /*Adapter for NESTED recycle view, for show
@@ -53,21 +55,29 @@ class ChildAdapter :
                     }
                 }
 
-                binding.proportion.text = item.proportion.toString()
+                MyPlayer.playlistsRequired.forEach {
+                    if (it.playlistId == item.playlist.id)
+                        binding.proportion.text = it.proportion.toString()
+                }
 
                 buttonLeft.setOnClickListener {
-                    var current = proportion.text.toString().toInt()
-                    current--
-                    if (current < 1) {
-                        return@setOnClickListener
-                    } else proportion.text = current.toString()
-
+                    MyPlayer.playlistsRequired.forEach {
+                        if (it.playlistId == item.playlist.id) {
+                            it.proportion--
+                            if (it.proportion < 1) {
+                                return@setOnClickListener
+                            } else proportion.text = it.proportion.toString()
+                        }
+                    }
                 }
 
                 buttonRight.setOnClickListener {
-                    var current = proportion.text.toString().toInt()
-                    current++
-                    proportion.text = current.toString()
+                    MyPlayer.playlistsRequired.forEach {
+                        if (it.playlistId == item.playlist.id) {
+                            it.proportion++
+                            proportion.text = it.proportion.toString()
+                        }
+                    }
                 }
 
             }

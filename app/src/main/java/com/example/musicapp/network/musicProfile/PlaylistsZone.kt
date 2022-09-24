@@ -7,7 +7,7 @@ data class PlaylistsZone(
 
     @Json(name = "playlist_id")
     val playlistId: Int,
-    val proportion: Int
+    var proportion: Int
 )  {
 
     fun getPlaylist(list: List<Playlist>): Playlist {
