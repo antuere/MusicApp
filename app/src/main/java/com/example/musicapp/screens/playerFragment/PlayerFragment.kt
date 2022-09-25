@@ -73,12 +73,12 @@ class PlayerFragment : Fragment() {
             if (it) {
                 playerView.player = viewModel.mainPlayer.value
                 title.text =
-                    viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
+                        viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
 
             } else {
                 playerView.player = viewModel.extraPlayer.value
                 title.text =
-                    viewModel.extraPlayer.value!!.mediaMetadata.title ?: "Today without music"
+                        viewModel.extraPlayer.value!!.mediaMetadata.title ?: "Today without music"
 
 
             }
@@ -88,11 +88,11 @@ class PlayerFragment : Fragment() {
 
             if (it) {
                 title.text =
-                    viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
+                        viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
 
             } else {
                 title.text =
-                    viewModel.extraPlayer.value!!.mediaMetadata.title ?: "Today without music"
+                        viewModel.extraPlayer.value!!.mediaMetadata.title ?: "Today without music"
             }
         }
 

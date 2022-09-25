@@ -123,9 +123,10 @@ object MyPlayer : Player.Listener {
     }
 
     private fun startPlay(timeZone: TimeZone) {
-        Timber.i("my log : enter in startPlay for $timeZone")
+
         val scope = CoroutineScope(Dispatchers.Main)
         scope.launch {
+            Timber.i("my log : enter in startPlay for $timeZone")
             playerExtra!!.clearMediaItems()
             player!!.clearMediaItems()
 
@@ -137,16 +138,19 @@ object MyPlayer : Player.Listener {
 
             addSongsToPlaylist(playlistsRequired)
             isAddNew = true
-            player!!.prepare()
-            player!!.play()
 
+            player!!.prepare()
             playerExtra!!.volume = 0F
+
+            Timber.i("my log : exit in startPlay for $timeZone")
 
         }
     }
 
+
     fun updateMusic() {
         if (player != null && playerExtra != null) {
+            Timber.i("my log updateMusic : enter")
             player!!.volume = 1F
             playerExtra!!.volume = 1F
 
@@ -167,11 +171,13 @@ object MyPlayer : Player.Listener {
             player!!.play()
 
             playerExtra!!.volume = 0F
+            Timber.i("my log updateMusic : exit")
         }
     }
 
     private fun addSongsToPlaylist(requiredPlaylists: MutableList<PlaylistsZone>) {
 
+        Timber.i("my log addSongs : enter")
         val playlistsZonesSorted = requiredPlaylists.sortedBy { it.proportion }
         val groupedPlaylists: Map<Int, List<PlaylistsZone>> =
             playlistsZonesSorted.groupBy { it.proportion }
@@ -205,6 +211,7 @@ object MyPlayer : Player.Listener {
                 }
             }
         }
+        Timber.i("my log addSongs : exit")
     }
 
     private fun stopPlay(timeZone: TimeZone) {
@@ -222,7 +229,6 @@ object MyPlayer : Player.Listener {
             durationSet = false
             doCrossFade = false
 
-
             isAddNew = false
             playerExtra!!.clearMediaItems()
             player!!.clearMediaItems()
@@ -239,7 +245,7 @@ object MyPlayer : Player.Listener {
 
         if (playbackState == ExoPlayer.STATE_READY && !durationSet) {
             Timber.i("my log: enter in onPlaybackStateChanged")
-            makeCrossFade(player!!, playerExtra!!)
+//            makeCrossFade(player!!, playerExtra!!)
             durationSet = true
             doCrossFade = true
         }
@@ -257,10 +263,10 @@ object MyPlayer : Player.Listener {
             makeCrossFade(playerExtra!!, player!!)
         }
 
-        if (!player!!.hasNextMediaItem() && !playerExtra!!.hasNextMediaItem() && isAddNew) {
-            Timber.i("my log: enter in addSongs")
-            addSongsToPlaylist(playlistsRequired)
-        }
+//        if (!player!!.hasNextMediaItem() && !playerExtra!!.hasNextMediaItem() && isAddNew) {
+//            Timber.i("my log: enter in addSongs")
+//            addSongsToPlaylist(playlistsRequired)
+//        }
 
 
     }
@@ -271,17 +277,27 @@ object MyPlayer : Player.Listener {
 
         if (!player!!.isPlaying && !playerExtra!!.isPlaying && isAddNew) {
             Timber.i("my log: all players stop")
-            player!!.seekToNextMediaItem()
+            if (player!!.volume > 0) {
+                player!!.seekToNextMediaItem()
+            } else if (playerExtra!!.volume > 0) {
+                playerExtra!!.seekToNextMediaItem()
+            }
             return
         }
 
         if (!player!!.isPlaying) {
             Timber.i("my log: main player stop")
+            if(!player!!.hasNextMediaItem()) {
+                addSongsToPlaylist(playlistsRequired)
+            }
             player!!.seekToNextMediaItem()
 
         }
         if (!playerExtra!!.isPlaying) {
             Timber.i("my log: extra player stop")
+            if(!playerExtra!!.hasNextMediaItem()) {
+                addSongsToPlaylist(playlistsRequired)
+            }
             playerExtra!!.seekToNextMediaItem()
 
         }
@@ -339,9 +355,11 @@ object MyPlayer : Player.Listener {
 
                     playerSecond.volume = 1F
                     playerFirst.volume = 0.0F
-                    delay(650)
+                    delay(800)
 
                     playerFirst.stop()
+
+
                 }
             }
         }
