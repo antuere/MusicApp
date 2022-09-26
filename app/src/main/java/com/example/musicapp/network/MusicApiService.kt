@@ -1,6 +1,6 @@
 package com.example.musicapp.network
 
-import com.example.musicapp.network.musicProfile.MusicProfile
+import com.example.musicapp.network.musicProfileNetwork.MusicProfileNet
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Retrofit
@@ -8,7 +8,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 
 
-private const val BASE_URL = "http://192.168.0.106:5432/"
+private const val BASE_URL = "http://192.168.1.61:8080/"
 
 private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory())
     .build()
@@ -24,7 +24,7 @@ private val retrofit = Retrofit.Builder()
 interface MusicApiService {
 
     @GET("schedule")
-    suspend fun getJSON(): MusicProfile
+    suspend fun getJSON(): MusicProfileNet
 
 }
 
@@ -32,4 +32,5 @@ object MusicApi {
     val retrofitService: MusicApiService by lazy {
         retrofit.create(MusicApiService::class.java)
     }
+
 }

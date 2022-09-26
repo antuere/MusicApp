@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.musicapp.R
 import com.example.musicapp.databinding.FragmentPlayerBinding
@@ -22,10 +23,12 @@ class PlayerFragment : Fragment() {
         fun newInstance() = PlayerFragment()
     }
 
-    private lateinit var viewModel: PlayerViewModel
+    private val viewModel: PlayerViewModel by viewModels {
+        PlayerViewModelFactory(requireActivity().application)
+    }
+
     private lateinit var binding: FragmentPlayerBinding
     private lateinit var actionBar: MaterialToolbar
-
 
     private lateinit var playerView: StyledPlayerView
 
@@ -39,7 +42,6 @@ class PlayerFragment : Fragment() {
     ): View {
         binding = FragmentPlayerBinding.inflate(inflater, container, false)
         actionBar = binding.toolBarApp
-
 
         activity = requireActivity() as AppCompatActivity
         activity.setSupportActionBar(actionBar)
@@ -64,22 +66,18 @@ class PlayerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val factory = PlayerViewModelFactory(requireActivity().application)
-        viewModel = ViewModelProvider(this, factory)[PlayerViewModel::class.java]
-
 
         viewModel.showMain.observe(viewLifecycleOwner) {
 
             if (it) {
                 playerView.player = viewModel.mainPlayer.value
                 title.text =
-                        viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
+                    viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
 
             } else {
                 playerView.player = viewModel.extraPlayer.value
                 title.text =
-                        viewModel.extraPlayer.value!!.mediaMetadata.title ?: "Today without music"
-
+                    viewModel.extraPlayer.value!!.mediaMetadata.title ?: "Today without music"
 
             }
         }
@@ -88,11 +86,11 @@ class PlayerFragment : Fragment() {
 
             if (it) {
                 title.text =
-                        viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
+                    viewModel.mainPlayer.value!!.mediaMetadata.title ?: "Today without music"
 
             } else {
                 title.text =
-                        viewModel.extraPlayer.value!!.mediaMetadata.title ?: "Today without music"
+                    viewModel.extraPlayer.value!!.mediaMetadata.title ?: "Today without music"
             }
         }
 

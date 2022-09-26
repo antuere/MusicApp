@@ -1,4 +1,4 @@
-package com.example.musicapp.network.musicProfile
+package com.example.musicapp.domain
 
 import com.squareup.moshi.Json
 

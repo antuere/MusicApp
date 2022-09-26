@@ -4,11 +4,10 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.*
 import com.example.musicapp.MyPlayer
-import com.example.musicapp.network.MusicApi
-import com.example.musicapp.network.musicProfile.Day
-import com.example.musicapp.network.musicProfile.MusicProfile
-import com.example.musicapp.network.musicProfile.Playlist
-import com.example.musicapp.network.musicProfile.PlaylistItem
+import com.example.musicapp.database.getDataBase
+import com.example.musicapp.domain.Playlist
+import com.example.musicapp.repository.MusicProfileRepository
+import com.example.musicapp.util.PlaylistItem
 import com.google.android.exoplayer2.ExoPlayer
 import kotlinx.coroutines.*
 import timber.log.Timber
@@ -25,23 +24,19 @@ val playlistItems: Map<String, List<PlaylistItem>>
     get() = playlistItemsPrivate
 
 
-class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationMy) {
+class TitleViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val database = getDataBase(application)
 
-    private var _profile = MutableLiveData<MusicProfile>()
-    val profile: LiveData<MusicProfile>
-        get() = _profile
+    private val musicProfileRepository = MusicProfileRepository(database, "Test Profile")
 
     private var _player = MutableLiveData<ExoPlayer>()
     val player: LiveData<ExoPlayer>
         get() = _player
 
-
     private var _playerExtra = MutableLiveData<ExoPlayer>()
     val playerExtra: LiveData<ExoPlayer>
         get() = _playerExtra
-
-    private var _playlists = MutableLiveData<List<Playlist>>()
 
     private val _showError = MutableLiveData<String>()
     val showError: LiveData<String>
@@ -53,8 +48,10 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
 
 
     init {
-        firstInitial()
+        refreshProfileFromNetwork()
     }
+
+    var profile = musicProfileRepository.musicProfile
 
 
     /*Made its once on start app:
@@ -63,31 +60,30 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
     * 2)download songs in the phone
     * 3)after download songs, set schedule for player
     * */
-    private fun firstInitial() {
-        Timber.i("my log we in the getResponseServer")
+    private fun refreshProfileFromNetwork() {
         viewModelScope.launch {
             try {
-                _profile.value = MusicApi.retrofitService.getJSON()
+                musicProfileRepository.updateProfile()
 
-                _playlists.value = _profile.value!!.schedule.playlists
+                delay(400)
+
+                profile = musicProfileRepository.musicProfile
 
                 downloadMusicFiles()
-
-                Timber.i("my log folders : $foldersPaths")
 
                 _player.value =
                     MyPlayer.getInstanceMain(getApplication<Application>().applicationContext)
                 _playerExtra.value =
                     MyPlayer.getInstanceExtra(getApplication<Application>().applicationContext)
 
-                _profile.value!!.schedule.days.forEach { day ->
+                profile.value!!.schedule.days.forEach { day ->
                     val items = mutableListOf<PlaylistItem>()
                     day.timeZones.forEach { timeZone ->
                         timeZone.playlistsOfZone.forEach { playlistsZone ->
                             val item = PlaylistItem(
                                 timeZone.from,
                                 timeZone.to,
-                                playlistsZone.getPlaylist(_playlists.value!!),
+                                playlistsZone.getPlaylist(profile.value!!.schedule.playlists),
                             )
                             items.add(item)
                             playlistItemsPrivate[day.day] = items
@@ -95,9 +91,9 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
                     }
                 }
 
-                MyPlayer.setScheduleForPlayer(_profile.value!!)
-                _renderUI.value = true
+                MyPlayer.setScheduleForPlayer(profile.value!!)
 
+                _renderUI.value = true
 
             } catch (e: Exception) {
                 _showError.value = e.message
@@ -107,7 +103,8 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
 
     //Download ALL songs from profile
     private suspend fun downloadMusicFiles() {
-        _playlists.value!!.forEach { playlist ->
+        Timber.i("my log in downloadAllMusic")
+        profile.value!!.schedule.playlists.forEach { playlist ->
             playlist.songs.forEach { song ->
                 downloadMusicFileFromUrl(
                     song.url,
@@ -115,10 +112,11 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
                     getApplication<Application>().applicationContext,
                     playlist.name
                 ).join()
-
+                song.playlist = playlist.name
+                song.pathToFile = foldersPaths[playlist.name] + "/${song.name}"
             }
         }
-
+        Timber.i("my log end downloadAllMusic")
     }
 
     // Download ONE song from URL and write folderPath
@@ -127,12 +125,6 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
     ): Job {
         Timber.i("my log in download $fileName")
         return viewModelScope.launch(Dispatchers.IO) {
-            Timber.i("my log in coroutine")
-            val url = URL(urlString)
-            url.openConnection().connect()
-
-            val inputStream = BufferedInputStream(url.openStream())
-
             val directoryString = context.filesDir.absolutePath + "/$playlist/"
             val directory = File(directoryString)
 
@@ -140,10 +132,19 @@ class TitleViewModel(applicationMy: Application) : AndroidViewModel(applicationM
                 foldersPathsPrivate[playlist] = directoryString
             }
 
+            if (File(directory, fileName).exists()) return@launch
+
             if (!directory.exists()) {
                 Timber.i("my log : make dir $directory")
                 directory.mkdir()
             }
+
+            Timber.i("my log in coroutine")
+            val url = URL(urlString)
+            url.openConnection().connect()
+
+            val inputStream = BufferedInputStream(url.openStream())
+
 
             val file = File(directory, fileName)
             val outputStream = FileOutputStream(file)

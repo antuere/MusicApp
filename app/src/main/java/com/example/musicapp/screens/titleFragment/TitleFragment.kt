@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.musicapp.R
@@ -21,7 +22,10 @@ class TitleFragment : Fragment() {
         fun newInstance() = TitleFragment()
     }
 
-    private lateinit var viewModel: TitleViewModel
+    private val viewModel: TitleViewModel by viewModels {
+        TitleViewModelFactory(requireActivity().application)
+    }
+
     private lateinit var binding: FragmentTitleBinding
     private lateinit var actionBar: MaterialToolbar
 
@@ -36,10 +40,6 @@ class TitleFragment : Fragment() {
         activity.setSupportActionBar(actionBar)
 
         Timber.i("my log in onCreateView")
-
-        val factory = TitleViewModelFactory(requireActivity().application)
-
-        viewModel = ViewModelProvider(this, factory)[TitleViewModel::class.java]
 
 //      Observe profile and when he is not null, change title for ActionBar on name of profile
         viewModel.profile.observe(viewLifecycleOwner) {
@@ -74,7 +74,7 @@ class TitleFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-    //If retrofit throw Error : app will not crash, instead this we will show toast with error message
+        //If retrofit throw Error : app will not crash, instead this we will show toast with error message
         viewModel.showError.observe(viewLifecycleOwner) {
             it?.let {
                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()

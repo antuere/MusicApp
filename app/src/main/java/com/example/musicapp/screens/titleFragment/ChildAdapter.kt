@@ -8,9 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.MyPlayer
 import com.example.musicapp.databinding.DayItemBinding
-import com.example.musicapp.network.musicProfile.PlaylistItem
-import com.example.musicapp.network.musicProfile.PlaylistsZone
-import timber.log.Timber
+import com.example.musicapp.util.PlaylistItem
 
 
 /*Adapter for NESTED recycle view, for show
@@ -43,7 +41,6 @@ class ChildAdapter :
         fun bind(item: PlaylistItem) {
             with(binding) {
                 val timeTextString = "${item.from} - ${item.to}"
-
                 timeText.text = timeTextString
 
                 val playlist = item.playlist
@@ -51,21 +48,21 @@ class ChildAdapter :
 
 //               Song integrity check: if current MD5 not match with required - show errorView
                 playlist.songs.forEach {
-                    val check = it.checkMD5(foldersPaths[playlist.name] + "/${it.name}")
+                    val check = it.checkMD5()
                     if (!check) {
-                        binding.errorView.visibility = View.VISIBLE
+                        errorView.visibility = View.VISIBLE
                     }
                 }
 
-                MyPlayer.playlistsRequired.forEach {
-                    if (it.playlistId == item.playlist.id)
-                        binding.proportion.text = it.proportion.toString()
-                }
+//                MyPlayer.playlistsRequired.forEach {
+//                    if (it.playlistId == item.playlist.id)
+//                        binding.proportion.text = it.proportion.toString()
+//                }
 
                 buttonLeft.setOnClickListener {
                     MyPlayer.playlistsRequired.forEach {
                         if (it.playlistId == item.playlist.id) {
-                            if(proportion.text.toString().toInt() == 1) {
+                            if (proportion.text.toString().toInt() == 1) {
                                 return@setOnClickListener
                             }
                             it.proportion--

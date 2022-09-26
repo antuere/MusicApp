@@ -48,7 +48,6 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
         } else if (!_mainPlayer.value!!.isPlaying && _extraPlayer.value!!.isPlaying ) {
 
             _changeTitle.value = false
-
         }
     }
 

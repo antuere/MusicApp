@@ -1,12 +1,15 @@
-package com.example.musicapp.network.musicProfile
+package com.example.musicapp.network.musicProfileNetwork
 
+import com.example.musicapp.database.musicProfileDB.SongDB
+import com.example.musicapp.domain.Song
 import com.squareup.moshi.Json
 import timber.log.Timber
 import java.io.File
 import java.security.MessageDigest
 
 
-data class Song(
+data class SongNet(
+
     val duration: Int,
 
     @Json(name = "file_name")
@@ -21,22 +24,32 @@ data class Song(
     val name: String,
     val order: Int,
     val size: Int
-) : Comparable<Song> {
+) : Comparable<SongNet> {
 
     lateinit var playlist: String
-    lateinit var pathToFile : String
+    lateinit var pathToFile: String
 
-    override fun compareTo(other: Song): Int {
-        return this.order - other.order
+
+    fun asSong(): Song {
+        return Song(
+            duration, url, fileId, md5File, name, order, size
+        )
     }
 
-    fun checkMD5(pathToFile: String?): Boolean {
+    fun asSongDB(): SongDB {
+        return SongDB(
+            duration, url, fileId, md5File, name, order, size
+        )
+    }
+
+
+    fun checkMD5(): Boolean {
 
         val digest = MessageDigest.getInstance("MD5")
         val requestMD5 = this.md5File
         var result: String
 
-        val file = File(pathToFile!!)
+        val file = File(pathToFile)
 
         file.inputStream().use { fis ->
             val buffer = ByteArray(1024)
@@ -56,7 +69,12 @@ data class Song(
         return result == requestMD5
     }
 
+    override fun compareTo(other: SongNet): Int {
+        return this.order - other.order
+    }
+
     override fun toString(): String {
         return this.name
     }
+
 }

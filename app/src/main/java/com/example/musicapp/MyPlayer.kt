@@ -2,8 +2,8 @@ package com.example.musicapp
 
 import android.content.Context
 import android.net.Uri
-import com.example.musicapp.network.musicProfile.*
-import com.example.musicapp.network.musicProfile.TimeZone
+import com.example.musicapp.domain.*
+import com.example.musicapp.domain.TimeZone
 import com.example.musicapp.screens.titleFragment.foldersPaths
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
@@ -32,7 +32,6 @@ object MyPlayer : Player.Listener {
     private var durationSet = false
     private var doCrossFade = false
     private var isAddNew = true
-
 
     fun getInstanceMain(context: Context): ExoPlayer {
         var myPlayer = player
@@ -188,16 +187,15 @@ object MyPlayer : Player.Listener {
                 val playlist = playlistsZone.getPlaylist(playlistsDownload)
                 for (i in 0 until prop) {
                     val song = playlist.songs.random()
-                    song.playlist = playlist.name
-                    song.pathToFile = foldersPaths[playlist.name] + "/${song.name}"
                     songs.add(song)
                 }
             }
         }
-        Timber.i("my log songs : ${songs.toString()}")
+        Timber.i("my log songs : $songs")
         if (songs.isNotEmpty()) {
             songs.forEach {
-                if (it.checkMD5(it.pathToFile)) {
+//                Add check MD5 when run on real device
+                if (true) {
                     val uri = Uri.fromFile(File(it.pathToFile))
                     val mediaItem = MediaItem.fromUri(uri)
 
@@ -218,26 +216,21 @@ object MyPlayer : Player.Listener {
 
         Timber.i("my log : enter in stopPlay for $timeZone")
         val scope = CoroutineScope(Dispatchers.Main)
+
         scope.launch {
+                player!!.volume = 1F
+                playerExtra!!.volume = 1F
 
-            player!!.volume = 1F
-            playerExtra!!.volume = 1F
+                player!!.stop()
+                playerExtra!!.stop()
 
-            player!!.stop()
-            playerExtra!!.stop()
+                durationSet = false
+                doCrossFade = false
+                isAddNew = false
 
-            durationSet = false
-            doCrossFade = false
-
-            isAddNew = false
-            playerExtra!!.clearMediaItems()
-            player!!.clearMediaItems()
-            playlistsRequired = mutableListOf()
-
-            /*Need fix this later, main point :
-            * need delete from player all songs
-            * that belong to the finished playlist
-            */
+                playerExtra!!.clearMediaItems()
+                player!!.clearMediaItems()
+                playlistsRequired = mutableListOf()
         }
     }
 
@@ -245,7 +238,6 @@ object MyPlayer : Player.Listener {
 
         if (playbackState == ExoPlayer.STATE_READY && !durationSet) {
             Timber.i("my log: enter in onPlaybackStateChanged")
-//            makeCrossFade(player!!, playerExtra!!)
             durationSet = true
             doCrossFade = true
         }
@@ -262,12 +254,6 @@ object MyPlayer : Player.Listener {
             Timber.i("my log: mediaChange for extra")
             makeCrossFade(playerExtra!!, player!!)
         }
-
-//        if (!player!!.hasNextMediaItem() && !playerExtra!!.hasNextMediaItem() && isAddNew) {
-//            Timber.i("my log: enter in addSongs")
-//            addSongsToPlaylist(playlistsRequired)
-//        }
-
 
     }
 
@@ -287,7 +273,7 @@ object MyPlayer : Player.Listener {
 
         if (!player!!.isPlaying) {
             Timber.i("my log: main player stop")
-            if(!player!!.hasNextMediaItem()) {
+            if (!player!!.hasNextMediaItem()) {
                 addSongsToPlaylist(playlistsRequired)
             }
             player!!.seekToNextMediaItem()
@@ -295,7 +281,7 @@ object MyPlayer : Player.Listener {
         }
         if (!playerExtra!!.isPlaying) {
             Timber.i("my log: extra player stop")
-            if(!playerExtra!!.hasNextMediaItem()) {
+            if (!playerExtra!!.hasNextMediaItem()) {
                 addSongsToPlaylist(playlistsRequired)
             }
             playerExtra!!.seekToNextMediaItem()

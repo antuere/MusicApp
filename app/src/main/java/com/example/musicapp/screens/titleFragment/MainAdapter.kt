@@ -9,10 +9,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicapp.convertDayOfWeekToNumber
 import com.example.musicapp.databinding.HeaderItemBinding
-import com.example.musicapp.network.musicProfile.Day
-import com.example.musicapp.network.musicProfile.PlaylistItem
+import com.example.musicapp.domain.Day
+import com.example.musicapp.network.musicProfileNetwork.DayNet
 import kotlinx.coroutines.*
-import timber.log.Timber
 import java.util.*
 
 
@@ -67,7 +66,7 @@ class MainAdapter :
             binding.header.text = item.day.replaceFirstChar { it.titlecaseChar() }
             val childAdapter = ChildAdapter()
             binding.nestedRecycleView.adapter = childAdapter
-
+            item.timeZones
             childAdapter.submitList(playlistItems[item.day])
 
         }
