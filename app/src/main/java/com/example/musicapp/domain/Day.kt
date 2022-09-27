@@ -1,6 +1,6 @@
 package com.example.musicapp.domain
 
-import com.example.musicapp.convertDayOfWeekToNumber
+import com.example.musicapp.util.convertDayOfWeekToNumber
 
 
 data class Day(

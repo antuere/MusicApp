@@ -7,6 +7,4 @@ data class MusicProfile(
     val name: String,
 
     val schedule: Schedule,
-
-    ) {
-}
+    )

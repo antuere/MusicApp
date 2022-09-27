@@ -1,6 +1,5 @@
 package com.example.musicapp.domain
 
-import com.squareup.moshi.Json
 import timber.log.Timber
 import java.io.File
 import java.security.MessageDigest
@@ -10,13 +9,10 @@ data class Song(
 
     val duration: Int,
 
-    @Json(name = "file_name")
     val url: String,
 
-    @Json(name = "id")
     val fileId: Int,
 
-    @Json(name = "md5_file")
     val md5File: String,
 
     val name: String,
@@ -26,6 +22,7 @@ data class Song(
 
     lateinit var playlist: String
     lateinit var pathToFile : String
+
 
     override fun compareTo(other: Song): Int {
         return this.order - other.order

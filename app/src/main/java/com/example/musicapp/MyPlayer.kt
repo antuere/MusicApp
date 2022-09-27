@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.example.musicapp.domain.*
 import com.example.musicapp.domain.TimeZone
-import com.example.musicapp.screens.titleFragment.foldersPaths
+import com.example.musicapp.util.convertDayOfWeekToNumber
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
@@ -295,7 +295,6 @@ object MyPlayer : Player.Listener {
 
         val position = playerFirst.currentPosition
         val timeLeft = playerFirst.contentDuration - position
-
 
 //        Start crossFade effect 7 seconds before the end of the song
         val delay = timeLeft - 7000

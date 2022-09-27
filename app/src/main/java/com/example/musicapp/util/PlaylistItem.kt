@@ -1,8 +1,6 @@
 package com.example.musicapp.util
 
 import com.example.musicapp.domain.Playlist
-import com.example.musicapp.network.musicProfileNetwork.PlaylistNet
-import com.example.musicapp.network.musicProfileNetwork.TimeZoneNet
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -12,11 +10,11 @@ data class PlaylistItem(
 
     val from: String,
     val to: String,
-
     val playlist: Playlist,
-) : Comparable<TimeZoneNet> {
+    val showError: Boolean
+) : Comparable<PlaylistItem> {
 
-    override fun compareTo(other: TimeZoneNet): Int {
+    override fun compareTo(other: PlaylistItem): Int {
         val format = SimpleDateFormat("H:mm", Locale.ENGLISH)
 
         val firstDate = format.parse(this.from)

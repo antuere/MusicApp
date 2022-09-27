@@ -1,12 +1,10 @@
 package com.example.musicapp.domain
 
-import com.squareup.moshi.Json
 
 
 data class Playlist(
     val duration: Int,
 
-    @Json(name = "files")
     val songs: List<Song>,
 
     val id: Int,
