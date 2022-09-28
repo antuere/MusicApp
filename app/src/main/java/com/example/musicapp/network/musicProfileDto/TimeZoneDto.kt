@@ -1,7 +1,5 @@
 package com.example.musicapp.network.musicProfileDto
 
-import com.example.musicapp.database.musicProfileEntity.TimeZoneEntity
-import com.example.musicapp.domain.TimeZone
 import com.squareup.moshi.Json
 
 

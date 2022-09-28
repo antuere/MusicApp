@@ -3,8 +3,6 @@ package com.example.musicapp.database.musicProfileEntity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.musicapp.database.musicProfileEntity.ScheduleEntity
-import com.example.musicapp.domain.MusicProfile
 
 
 @Entity

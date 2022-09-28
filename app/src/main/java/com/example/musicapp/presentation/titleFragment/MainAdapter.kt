@@ -11,7 +11,6 @@ import com.example.musicapp.util.convertDayOfWeekToNumber
 import com.example.musicapp.databinding.HeaderItemBinding
 import com.example.musicapp.domain.Day
 import kotlinx.coroutines.*
-import java.util.*
 
 
 /*Adapter for MAIN recycle view, just for show single day

@@ -1,4 +1,4 @@
-package com.example.musicapp.util
+package com.example.musicapp.database.util
 
 import androidx.room.TypeConverter
 import com.example.musicapp.database.musicProfileEntity.DayEntity

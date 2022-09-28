@@ -1,6 +1,5 @@
 package com.example.musicapp.database.musicProfileEntity
 
-import com.example.musicapp.domain.Playlist
 import com.squareup.moshi.Json
 
 

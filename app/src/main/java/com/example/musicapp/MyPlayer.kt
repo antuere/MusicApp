@@ -1,16 +1,16 @@
 package com.example.musicapp
 
 import android.content.Context
-import android.net.Uri
 import com.example.musicapp.domain.*
 import com.example.musicapp.domain.TimeZone
+import com.example.musicapp.domain.usecase.AddSongsToPlayerUseCase
+import com.example.musicapp.domain.usecase.MakeCrossFadeUseCase
 import com.example.musicapp.util.convertDayOfWeekToNumber
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import kotlinx.coroutines.*
 import timber.log.Timber
-import java.io.File
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -26,12 +26,19 @@ object MyPlayer : Player.Listener {
     @Volatile
     private var playerExtra: ExoPlayer? = null
 
-    private lateinit var playlistsDownload: List<Playlist>
+    private lateinit var playlistsDownloadPrivate: List<Playlist>
+    val playlistsDownload: List<Playlist>
+        get() = playlistsDownloadPrivate
+
     lateinit var playlistsRequired: MutableList<PlaylistsZone>
 
     private var durationSet = false
     private var doCrossFade = false
-    private var isAddNew = true
+    var isAddNew = true
+
+    private val addSongsToPlayerUseCase: AddSongsToPlayerUseCase by lazy {
+        AddSongsToPlayerUseCase(player!!, playerExtra!!)
+    }
 
     fun getInstanceMain(context: Context): ExoPlayer {
         var myPlayer = player
@@ -70,7 +77,7 @@ object MyPlayer : Player.Listener {
         val days = profile.schedule.days
         lateinit var timezones: List<TimeZone>
         lateinit var calendar: Calendar
-        playlistsDownload = profile.schedule.playlists
+        playlistsDownloadPrivate = profile.schedule.playlists
 
         player!!.addListener(this)
         playerExtra!!.addListener(this)
@@ -135,7 +142,7 @@ object MyPlayer : Player.Listener {
                 playlistsRequired.add(playlistsZone)
             }
 
-            addSongsToPlaylist(playlistsRequired)
+            addSongsToPlayerUseCase.invoke()
             isAddNew = true
 
             player!!.prepare()
@@ -147,70 +154,6 @@ object MyPlayer : Player.Listener {
     }
 
 
-    fun updateMusic() {
-        if (player != null && playerExtra != null) {
-            Timber.i("my log updateMusic : enter")
-            player!!.volume = 1F
-            playerExtra!!.volume = 1F
-
-            durationSet = false
-            doCrossFade = false
-            isAddNew = false
-
-            player!!.stop()
-            playerExtra!!.stop()
-
-            player!!.clearMediaItems()
-            playerExtra!!.clearMediaItems()
-
-            addSongsToPlaylist(playlistsRequired)
-            isAddNew = true
-
-            player!!.prepare()
-            player!!.play()
-
-            playerExtra!!.volume = 0F
-            Timber.i("my log updateMusic : exit")
-        }
-    }
-
-    private fun addSongsToPlaylist(requiredPlaylists: MutableList<PlaylistsZone>) {
-
-        Timber.i("my log addSongs : enter")
-        val playlistsZonesSorted = requiredPlaylists.sortedBy { it.proportion }
-        val groupedPlaylists: Map<Int, List<PlaylistsZone>> =
-            playlistsZonesSorted.groupBy { it.proportion }
-
-        val songs: MutableList<Song> = mutableListOf()
-        groupedPlaylists.forEach { (prop, playlists) ->
-            playlists.forEach { playlistsZone ->
-                val playlist = playlistsZone.getPlaylist(playlistsDownload)
-                for (i in 0 until prop) {
-                    val song = playlist.songs.random()
-                    songs.add(song)
-                }
-            }
-        }
-        Timber.i("my log songs : $songs")
-        if (songs.isNotEmpty()) {
-            songs.forEach {
-//                Add check MD5 when run on real device
-                if (true) {
-                    val uri = Uri.fromFile(File(it.pathToFile))
-                    val mediaItem = MediaItem.fromUri(uri)
-
-                    val song = mediaItem.mediaMetadata.buildUpon()
-                        .setTitle("${it.playlist} - ${it.name}").build()
-
-                    val resultSong = mediaItem.buildUpon().setMediaMetadata(song).build()
-
-                    player!!.addMediaItem(resultSong)
-                    playerExtra!!.addMediaItem(resultSong)
-                }
-            }
-        }
-        Timber.i("my log addSongs : exit")
-    }
 
     private fun stopPlay(timeZone: TimeZone) {
 
@@ -218,20 +161,24 @@ object MyPlayer : Player.Listener {
         val scope = CoroutineScope(Dispatchers.Main)
 
         scope.launch {
-                player!!.volume = 1F
-                playerExtra!!.volume = 1F
+            player!!.volume = 1F
+            playerExtra!!.volume = 1F
 
-                player!!.stop()
-                playerExtra!!.stop()
+            player!!.stop()
+            playerExtra!!.stop()
 
-                durationSet = false
-                doCrossFade = false
-                isAddNew = false
+            resetFlags()
 
-                playerExtra!!.clearMediaItems()
-                player!!.clearMediaItems()
-                playlistsRequired = mutableListOf()
+            playerExtra!!.clearMediaItems()
+            player!!.clearMediaItems()
+            playlistsRequired = mutableListOf()
         }
+    }
+
+    fun resetFlags() {
+        durationSet = false
+        doCrossFade = false
+        isAddNew = false
     }
 
     override fun onPlaybackStateChanged(playbackState: Int) {
@@ -248,11 +195,13 @@ object MyPlayer : Player.Listener {
 
         if (player!!.volume == 1F && playerExtra!!.volume == 0.0F && doCrossFade) {
             Timber.i("my log: mediaChange for main")
-            makeCrossFade(player!!, playerExtra!!)
+            val makeCrossFadeUseCase = MakeCrossFadeUseCase(player!!, playerExtra!!)
+            makeCrossFadeUseCase.invoke()
 
         } else if (player!!.volume == 0.0F && playerExtra!!.volume == 1F && doCrossFade) {
             Timber.i("my log: mediaChange for extra")
-            makeCrossFade(playerExtra!!, player!!)
+            val makeCrossFadeUseCase = MakeCrossFadeUseCase(playerExtra!!, player!!)
+            makeCrossFadeUseCase.invoke()
         }
 
     }
@@ -274,7 +223,7 @@ object MyPlayer : Player.Listener {
         if (!player!!.isPlaying) {
             Timber.i("my log: main player stop")
             if (!player!!.hasNextMediaItem()) {
-                addSongsToPlaylist(playlistsRequired)
+                addSongsToPlayerUseCase.invoke()
             }
             player!!.seekToNextMediaItem()
 
@@ -282,73 +231,13 @@ object MyPlayer : Player.Listener {
         if (!playerExtra!!.isPlaying) {
             Timber.i("my log: extra player stop")
             if (!playerExtra!!.hasNextMediaItem()) {
-                addSongsToPlaylist(playlistsRequired)
+                addSongsToPlayerUseCase.invoke()
             }
             playerExtra!!.seekToNextMediaItem()
 
         }
 
         Timber.i("my log: exit onIsPlayChanged")
-    }
-
-    private fun makeCrossFade(playerFirst: ExoPlayer, playerSecond: ExoPlayer) {
-
-        val position = playerFirst.currentPosition
-        val timeLeft = playerFirst.contentDuration - position
-
-//        Start crossFade effect 7 seconds before the end of the song
-        val delay = timeLeft - 7000
-        var delayValue = 0.7F
-
-        val startSong = playerFirst.currentMediaItem!!.mediaMetadata.title
-
-        val timer = Timer()
-
-        val timerTask = timerTask {
-            CoroutineScope(Dispatchers.Main).launch {
-
-                if (!playerFirst.isPlaying) {
-                    Timber.i("my log: return ;(")
-                    return@launch
-                }
-
-                val currentSong = playerFirst.currentMediaItem!!.mediaMetadata.title
-
-                if (!playerSecond.isPlaying && currentSong == startSong) {
-
-                    Timber.i("my log: start change volumes")
-                    playerFirst.volume = 0.9F
-                    delay(350)
-                    playerFirst.volume = 0.85F
-                    delay(350)
-
-                    playerFirst.volume = 0.8F
-                    delay(350)
-                    playerFirst.volume = 0.75F
-                    delay(350)
-
-                    playerSecond.prepare()
-                    playerSecond.play()
-
-                    repeat(14) {
-                        playerSecond.volume = 1 - delayValue
-                        playerFirst.volume = delayValue
-                        delay(350)
-
-                        delayValue -= 0.05F
-                    }
-
-                    playerSecond.volume = 1F
-                    playerFirst.volume = 0.0F
-                    delay(800)
-
-                    playerFirst.stop()
-
-
-                }
-            }
-        }
-        timer.schedule(timerTask, delay)
     }
 }
 

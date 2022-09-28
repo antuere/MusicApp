@@ -5,7 +5,9 @@ import android.content.Context
 import androidx.lifecycle.*
 import com.example.musicapp.MyPlayer
 import com.example.musicapp.database.getDataBase
-import com.example.musicapp.repository.MusicProfileRepository
+import com.example.musicapp.domain.usecase.GetMusicProfileUseCase
+import com.example.musicapp.domain.usecase.UpdateMusicProfileUseCase
+import com.example.musicapp.repository.MusicProfileRepositoryImpl
 import com.example.musicapp.util.PlaylistItem
 import com.google.android.exoplayer2.ExoPlayer
 import kotlinx.coroutines.*
@@ -23,7 +25,10 @@ class TitleViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = getDataBase(application)
 
-    private val musicProfileRepository = MusicProfileRepository(database, "Test Profile")
+    private val musicProfileRepository = MusicProfileRepositoryImpl(database, "Test Profile")
+
+    private val getMusicProfileUseCase = GetMusicProfileUseCase(musicProfileRepository)
+    private val updateMusicProfileUseCase = UpdateMusicProfileUseCase(musicProfileRepository)
 
     private var foldersPaths = mutableMapOf<String, String>()
 
@@ -48,7 +53,7 @@ class TitleViewModel(application: Application) : AndroidViewModel(application) {
         refreshProfileFromNetwork()
     }
 
-    var profile = musicProfileRepository.musicProfile
+    var profile = getMusicProfileUseCase.invoke()
 
 
     /*Made its once on start app:
@@ -62,11 +67,11 @@ class TitleViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 Timber.i("timer start")
 
-                musicProfileRepository.updateProfile()
+                updateMusicProfileUseCase.invoke()
 
                 delay(25)
 
-                profile = musicProfileRepository.musicProfile
+                profile = getMusicProfileUseCase.invoke()
 
 
             } catch (e: Exception) {
@@ -74,14 +79,16 @@ class TitleViewModel(application: Application) : AndroidViewModel(application) {
                 _showError.value = null
             }
 
-            if (profile.value != null) downloadMusicsAndInitPlayer()
+            if (profile.value != null) {
+                downloadSongs()
+                initExoPlayer()
+            }
 
         }
     }
 
-    //Download ALL songs from profile and initial players
-    private suspend fun downloadMusicsAndInitPlayer() {
-
+    //Download ALL songs from profile
+    private suspend fun downloadSongs() {
         profile.value!!.schedule.playlists.forEach { playlist ->
             playlist.songs.forEach { song ->
                 downloadMusicFileFromUrl(
@@ -94,7 +101,10 @@ class TitleViewModel(application: Application) : AndroidViewModel(application) {
                 song.pathToFile = foldersPaths[playlist.name] + "/${song.name}"
             }
         }
+    }
 
+    //Initial ExoPlayers
+    private fun initExoPlayer() {
         profile.value!!.schedule.days.forEach { day ->
             val items = mutableListOf<PlaylistItem>()
             day.timeZones.forEach { timeZone ->

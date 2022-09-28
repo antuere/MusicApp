@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.musicapp.database.musicProfileEntity.MusicProfileEntity
-import com.example.musicapp.util.Converters
+import com.example.musicapp.database.util.Converters
 
 @Dao
 interface MusicProfileDAO {
