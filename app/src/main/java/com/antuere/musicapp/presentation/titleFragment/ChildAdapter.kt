@@ -6,10 +6,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.antuere.domain.usecase.IncreaseProportionUseCase
 import com.antuere.musicapp.MyPlayer
 import com.antuere.musicapp.databinding.DayItemBinding
-import com.antuere.musicapp.domain.usecase.IncreaseProportionUseCase
-import com.antuere.musicapp.domain.usecase.ReduceProportionUseCase
+import com.antuere.domain.usecase.ReduceProportionUseCase
 import com.antuere.musicapp.util.PlaylistItem
 
 
@@ -58,7 +58,8 @@ class ChildAdapter :
                 }
 
                 buttonLeft.setOnClickListener {
-                    val reduceProportionUseCase = ReduceProportionUseCase()
+                    val reduceProportionUseCase =
+                        ReduceProportionUseCase(MyPlayer.playlistsRequired)
                     val newProp = reduceProportionUseCase.invoke(item.playlist.id)
                     if (newProp < 1) return@setOnClickListener
                     proportion.text = newProp.toString()
@@ -67,7 +68,8 @@ class ChildAdapter :
                 }
 
                 buttonRight.setOnClickListener {
-                    val increaseProportionUseCase = IncreaseProportionUseCase()
+                    val increaseProportionUseCase =
+                        IncreaseProportionUseCase(MyPlayer.playlistsRequired)
                     val newProp = increaseProportionUseCase.invoke(item.playlist.id)
                     if (newProp < 1) return@setOnClickListener
                     proportion.text = newProp.toString()

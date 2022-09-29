@@ -2,12 +2,12 @@ package com.antuere.musicapp
 
 import android.content.Context
 import android.net.Uri
-import com.antuere.musicapp.domain.musicProfile.TimeZone
-import com.antuere.musicapp.domain.musicProfile.MusicProfile
-import com.antuere.musicapp.domain.musicProfile.Playlist
-import com.antuere.musicapp.domain.musicProfile.PlaylistsZone
-import com.antuere.musicapp.domain.usecase.GetSongsForPlayerUseCase
-import com.antuere.musicapp.util.convertDayOfWeekToNumber
+import com.antuere.domain.musicProfile.TimeZone
+import com.antuere.domain.musicProfile.MusicProfile
+import com.antuere.domain.musicProfile.Playlist
+import com.antuere.domain.musicProfile.PlaylistsZone
+import com.antuere.domain.usecase.GetSongsForPlayerUseCase
+import com.antuere.domain.util.convertDayOfWeekToNumber
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
@@ -29,15 +29,9 @@ object MyPlayer : Player.Listener {
     @Volatile
     private var playerExtra: ExoPlayer? = null
 
-    private lateinit var playlistsDownloadPrivate: List<Playlist>
-    val playlistsDownload: List<Playlist>
-        get() = playlistsDownloadPrivate
+    private lateinit var playlistsDownload: List<Playlist>
 
     lateinit var playlistsRequired: MutableList<PlaylistsZone>
-
-    private val getSongsForPlayerUseCase: GetSongsForPlayerUseCase by lazy {
-        GetSongsForPlayerUseCase()
-    }
 
     private var durationSet = false
     private var doCrossFade = false
@@ -80,7 +74,7 @@ object MyPlayer : Player.Listener {
         val days = profile.schedule.days
         lateinit var timezones: List<TimeZone>
         lateinit var calendar: Calendar
-        playlistsDownloadPrivate = profile.schedule.playlists
+        playlistsDownload = profile.schedule.playlists
 
         player!!.addListener(this)
         playerExtra!!.addListener(this)
@@ -178,6 +172,10 @@ object MyPlayer : Player.Listener {
     }
 
     private fun addSongsToPlayer() {
+
+        val getSongsForPlayerUseCase =
+            GetSongsForPlayerUseCase(playlistsRequired, playlistsDownload)
+
         val songs = getSongsForPlayerUseCase.invoke()
         if (songs.isNotEmpty()) {
             songs.forEach {

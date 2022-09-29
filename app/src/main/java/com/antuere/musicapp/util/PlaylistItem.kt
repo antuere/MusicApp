@@ -1,6 +1,6 @@
 package com.antuere.musicapp.util
 
-import com.antuere.musicapp.domain.musicProfile.Playlist
+import com.antuere.domain.musicProfile.Playlist
 import java.text.SimpleDateFormat
 import java.util.*
 

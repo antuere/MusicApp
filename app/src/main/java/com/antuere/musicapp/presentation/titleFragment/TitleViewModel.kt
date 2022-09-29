@@ -4,10 +4,10 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.*
 import com.antuere.musicapp.MyPlayer
-import com.antuere.musicapp.data.localDatabase.getDataBase
-import com.antuere.musicapp.domain.usecase.GetMusicProfileUseCase
-import com.antuere.musicapp.domain.usecase.UpdateMusicProfileUseCase
-import com.antuere.musicapp.data.repository.MusicProfileRepositoryImpl
+import com.antuere.data.localDatabase.getDataBase
+import com.antuere.domain.usecase.GetMusicProfileUseCase
+import com.antuere.domain.usecase.UpdateMusicProfileUseCase
+import com.antuere.data.repository.MusicProfileRepositoryImpl
 import com.antuere.musicapp.util.PlaylistItem
 import com.google.android.exoplayer2.ExoPlayer
 import kotlinx.coroutines.*
@@ -25,10 +25,13 @@ class TitleViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = getDataBase(application)
 
-    private val musicProfileRepository = MusicProfileRepositoryImpl(database, "Test Profile")
+    private val musicProfileRepository =
+        MusicProfileRepositoryImpl(database, "Test Profile")
 
-    private val getMusicProfileUseCase = GetMusicProfileUseCase(musicProfileRepository)
-    private val updateMusicProfileUseCase = UpdateMusicProfileUseCase(musicProfileRepository)
+    private val getMusicProfileUseCase =
+        GetMusicProfileUseCase(musicProfileRepository)
+    private val updateMusicProfileUseCase =
+        UpdateMusicProfileUseCase(musicProfileRepository)
 
     private var foldersPaths = mutableMapOf<String, String>()
 
