@@ -7,8 +7,12 @@ import androidx.lifecycle.MutableLiveData
 import com.antuere.musicapp.MyPlayer
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class PlayerViewModel(application: Application) : AndroidViewModel(application), Player.Listener {
+@HiltViewModel
+class PlayerViewModel @Inject constructor(application: Application) : AndroidViewModel(application),
+    Player.Listener {
 
     private var _mainPlayer = MutableLiveData<ExoPlayer>()
     val mainPlayer: LiveData<ExoPlayer>
@@ -40,11 +44,11 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
 
-        if (!_mainPlayer.value!!.isPlaying && !_extraPlayer.value!!.isPlaying){
+        if (!_mainPlayer.value!!.isPlaying && !_extraPlayer.value!!.isPlaying) {
 
             _changeTitle.value = true
 
-        } else if (!_mainPlayer.value!!.isPlaying && _extraPlayer.value!!.isPlaying ) {
+        } else if (!_mainPlayer.value!!.isPlaying && _extraPlayer.value!!.isPlaying) {
 
             _changeTitle.value = false
         }
@@ -52,11 +56,11 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application),
 
     override fun onVolumeChanged(volume: Float) {
 
-        if ( _mainPlayer.value!!.volume > 0.65F   ){
+        if (_mainPlayer.value!!.volume > 0.65F) {
 
             _showMain.value = true
 
-        } else if ( _extraPlayer.value!!.volume > 0.65F ) {
+        } else if (_extraPlayer.value!!.volume > 0.65F) {
 
             _showMain.value = false
 

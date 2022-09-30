@@ -1,6 +1,5 @@
 package com.antuere.data.localDatabase
 
-import android.content.Context
 import androidx.room.*
 import com.antuere.data.localDatabase.musicProfileEntity.MusicProfileEntity
 import com.antuere.data.localDatabase.util.Converters
@@ -24,19 +23,4 @@ interface MusicProfileDAO {
 @TypeConverters(Converters::class)
 abstract class MusicProfileDataBase : RoomDatabase() {
     abstract val musicProfileDAO: MusicProfileDAO
-}
-
-private lateinit var INSTANCE: MusicProfileDataBase
-
-fun getDataBase(context: Context): MusicProfileDataBase {
-    synchronized(MusicProfileDataBase::class.java) {
-        if (!::INSTANCE.isInitialized) {
-            INSTANCE = Room.databaseBuilder(
-                context.applicationContext,
-                MusicProfileDataBase::class.java,
-                "music_profiles"
-            ).build()
-        }
-        return INSTANCE
-    }
 }

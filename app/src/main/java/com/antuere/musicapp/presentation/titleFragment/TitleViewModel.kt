@@ -4,29 +4,29 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.*
 import com.antuere.musicapp.MyPlayer
-import com.antuere.data.localDatabase.getDataBase
 import com.antuere.domain.usecase.GetMusicProfileUseCase
 import com.antuere.domain.usecase.UpdateMusicProfileUseCase
-import com.antuere.data.repository.MusicProfileRepositoryImpl
+import com.antuere.domain.repository.MusicProfileRepository
 import com.antuere.musicapp.util.PlaylistItem
 import com.google.android.exoplayer2.ExoPlayer
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.*
 import java.lang.Exception
 import java.net.URL
+import javax.inject.Inject
 
 private var playlistItemsPrivate = mutableMapOf<String, List<PlaylistItem>>()
 val playlistItems: Map<String, List<PlaylistItem>>
     get() = playlistItemsPrivate
 
 
-class TitleViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val database = getDataBase(application)
-
-    private val musicProfileRepository =
-        MusicProfileRepositoryImpl(database, "Test Profile")
+@HiltViewModel
+class TitleViewModel @Inject constructor(
+    application: Application,
+    musicProfileRepository: MusicProfileRepository
+) : AndroidViewModel(application) {
 
     private val getMusicProfileUseCase =
         GetMusicProfileUseCase(musicProfileRepository)

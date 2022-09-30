@@ -15,16 +15,16 @@ import com.antuere.musicapp.R
 import com.antuere.musicapp.databinding.FragmentPlayerBinding
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.material.appbar.MaterialToolbar
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class PlayerFragment : Fragment() {
 
     companion object {
         fun newInstance() = PlayerFragment()
     }
 
-    private val viewModel: PlayerViewModel by viewModels {
-        PlayerViewModelFactory(requireActivity().application)
-    }
+    private val viewModel: PlayerViewModel by viewModels()
 
     private lateinit var binding: FragmentPlayerBinding
     private lateinit var actionBar: MaterialToolbar

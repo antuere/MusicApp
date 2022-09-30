@@ -53,8 +53,11 @@ class ChildAdapter :
                 if (item.showError) errorView.visibility = View.VISIBLE
 
                 MyPlayer.playlistsRequired.forEach {
-                    if (it.playlistId == item.playlist.id)
+                    if (it.playlistId == item.playlist.id) {
+                        val prop = it.proportion
                         binding.proportion.text = it.proportion.toString()
+                        buttonLeft.isClickable = prop != 1
+                    }
                 }
 
                 buttonLeft.setOnClickListener {

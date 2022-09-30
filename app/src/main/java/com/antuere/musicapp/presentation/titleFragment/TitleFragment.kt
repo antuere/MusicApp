@@ -13,18 +13,19 @@ import androidx.navigation.fragment.findNavController
 import com.antuere.musicapp.R
 import com.antuere.musicapp.databinding.FragmentTitleBinding
 import com.google.android.material.appbar.MaterialToolbar
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.*
 
+
+@AndroidEntryPoint
 class TitleFragment : Fragment() {
 
     companion object {
         fun newInstance() = TitleFragment()
     }
 
-    private val viewModel: TitleViewModel by viewModels {
-        TitleViewModelFactory(requireActivity().application)
-    }
+    private val viewModel: TitleViewModel by viewModels()
 
     private lateinit var binding: FragmentTitleBinding
     private lateinit var actionBar: MaterialToolbar
