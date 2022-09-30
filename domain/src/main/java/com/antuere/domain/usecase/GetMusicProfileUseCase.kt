@@ -9,5 +9,6 @@ class GetMusicProfileUseCase(private val musicProfileRepository: MusicProfileRep
     operator fun invoke(): Flow<MusicProfile?> {
 
         return musicProfileRepository.getProfile()
+
     }
 }
