@@ -1,5 +1,6 @@
-package com.antuere.musicapp
+package com.antuere.musicapp.util
 
+import android.app.Application
 import android.content.Context
 import android.net.Uri
 import com.antuere.domain.musicProfile.TimeZone
@@ -15,54 +16,59 @@ import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.File
 import java.util.*
+import javax.inject.Inject
 import kotlin.concurrent.timerTask
 
 
-/* Singleton class for ExoPlayer, working with schedule.
-For crossFade effect we created 2 instances of ExoPlayer*/
+/*
+Singleton class for ExoPlayer, working with schedule.
+For crossFade effect we created 2 instances of ExoPlayer
+*/
 
-object MyPlayer : Player.Listener {
-
-    @Volatile
-    private var player: ExoPlayer? = null
-
-    @Volatile
-    private var playerExtra: ExoPlayer? = null
+class MyPlayer @Inject constructor(application: Application) : Player.Listener {
 
     private lateinit var playlistsDownload: List<Playlist>
-
     lateinit var playlistsRequired: MutableList<PlaylistsZone>
+
+    val player: ExoPlayer by lazy {
+        ExoPlayer.Builder(application).build()
+    }
+
+    val playerExtra: ExoPlayer by lazy {
+        ExoPlayer.Builder(application).build()
+    }
+
 
     private var durationSet = false
     private var doCrossFade = false
     private var isAddNew = true
 
-    fun getInstanceMain(context: Context): ExoPlayer {
-        var myPlayer = player
-        if (myPlayer == null) {
-            synchronized(this) {
-                if (myPlayer == null) {
-                    myPlayer = ExoPlayer.Builder(context).build()
-                    player = myPlayer
-
-                }
-            }
-        }
-        return myPlayer!!
-    }
-
-    fun getInstanceExtra(context: Context): ExoPlayer {
-        var myPlayer = playerExtra
-        if (myPlayer == null) {
-            synchronized(this) {
-                if (myPlayer == null) {
-                    myPlayer = ExoPlayer.Builder(context).build()
-                    playerExtra = myPlayer
-                }
-            }
-        }
-        return myPlayer!!
-    }
+//    fun getInstanceMain(context: Context): ExoPlayer {
+//        var myPlayer = player
+//        if (myPlayer == null) {
+//            synchronized(this) {
+//                if (myPlayer == null) {
+//                    myPlayer = ExoPlayer.Builder(context).build()
+//                    player = myPlayer
+//
+//                }
+//            }
+//        }
+//        return myPlayer
+//    }
+//
+//    fun getInstanceExtra(context: Context): ExoPlayer {
+//        var myPlayer = playerExtra
+//        if (myPlayer == null) {
+//            synchronized(this) {
+//                if (myPlayer == null) {
+//                    myPlayer = ExoPlayer.Builder(context).build()
+//                    playerExtra = myPlayer
+//                }
+//            }
+//        }
+//        return myPlayer
+//    }
 
 /*   Made this once when app start first time or after destroy.
 *    Set schedule rules based on profile instance, get days from profile,
@@ -76,8 +82,8 @@ object MyPlayer : Player.Listener {
         lateinit var calendar: Calendar
         playlistsDownload = profile.schedule.playlists
 
-        player!!.addListener(this)
-        playerExtra!!.addListener(this)
+        player.addListener(this)
+        playerExtra.addListener(this)
 
         days.forEach { day ->
             calendar = Calendar.getInstance()
@@ -130,8 +136,8 @@ object MyPlayer : Player.Listener {
         val scope = CoroutineScope(Dispatchers.Main)
         scope.launch {
             Timber.i("my log : enter in startPlay for $timeZone")
-            playerExtra!!.clearMediaItems()
-            player!!.clearMediaItems()
+            playerExtra.clearMediaItems()
+            player.clearMediaItems()
 
             playlistsRequired = mutableListOf()
 
@@ -142,8 +148,8 @@ object MyPlayer : Player.Listener {
             addSongsToPlayer()
             isAddNew = true
 
-            player!!.prepare()
-            playerExtra!!.volume = 0F
+            player.prepare()
+            playerExtra.volume = 0F
 
             Timber.i("my log : exit in startPlay for $timeZone")
 
@@ -156,16 +162,16 @@ object MyPlayer : Player.Listener {
         Timber.i("my log : enter in stopPlay for $timeZone")
         val scope = CoroutineScope(Dispatchers.Main)
         scope.launch {
-            player!!.volume = 1F
-            playerExtra!!.volume = 1F
+            player.volume = 1F
+            playerExtra.volume = 1F
 
-            player!!.stop()
-            playerExtra!!.stop()
+            player.stop()
+            playerExtra.stop()
 
             resetFlags()
 
-            playerExtra!!.clearMediaItems()
-            player!!.clearMediaItems()
+            playerExtra.clearMediaItems()
+            player.clearMediaItems()
             playlistsRequired = mutableListOf()
         }
     }
@@ -188,8 +194,8 @@ object MyPlayer : Player.Listener {
 
                     val resultSong = mediaItem.buildUpon().setMediaMetadata(song).build()
 
-                    player!!.addMediaItem(resultSong)
-                    playerExtra!!.addMediaItem(resultSong)
+                    player.addMediaItem(resultSong)
+                    playerExtra.addMediaItem(resultSong)
                 }
             }
         }
@@ -197,25 +203,25 @@ object MyPlayer : Player.Listener {
 
 
     fun updateSongs() {
-        player!!.volume = 1F
-        playerExtra!!.volume = 1F
+        player.volume = 1F
+        playerExtra.volume = 1F
 
         resetFlags()
 
-        player!!.stop()
-        playerExtra!!.stop()
+        player.stop()
+        playerExtra.stop()
 
-        player!!.clearMediaItems()
-        playerExtra!!.clearMediaItems()
+        player.clearMediaItems()
+        playerExtra.clearMediaItems()
 
         addSongsToPlayer()
 
         isAddNew = true
 
-        player!!.prepare()
-        player!!.play()
+        player.prepare()
+        player.play()
 
-        playerExtra!!.volume = 0F
+        playerExtra.volume = 0F
     }
 
     private fun resetFlags() {
@@ -236,13 +242,13 @@ object MyPlayer : Player.Listener {
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
 
-        if (player!!.volume == 1F && playerExtra!!.volume == 0.0F && doCrossFade) {
+        if (player.volume == 1F && playerExtra.volume == 0.0F && doCrossFade) {
             Timber.i("my log: mediaChange for main")
-            makeCrossFade(player!!, playerExtra!!)
+            makeCrossFade(player, playerExtra)
 
-        } else if (player!!.volume == 0.0F && playerExtra!!.volume == 1F && doCrossFade) {
+        } else if (player.volume == 0.0F && playerExtra.volume == 1F && doCrossFade) {
             Timber.i("my log: mediaChange for extra")
-            makeCrossFade(playerExtra!!, player!!)
+            makeCrossFade(playerExtra, player)
         }
 
     }
@@ -251,30 +257,30 @@ object MyPlayer : Player.Listener {
 
         Timber.i("my log: enter onIsPlayChanged")
 
-        if (!player!!.isPlaying && !playerExtra!!.isPlaying && isAddNew) {
+        if (!player.isPlaying && !playerExtra.isPlaying && isAddNew) {
             Timber.i("my log: all players stop")
-            if (player!!.volume > 0) {
-                player!!.seekToNextMediaItem()
-            } else if (playerExtra!!.volume > 0) {
-                playerExtra!!.seekToNextMediaItem()
+            if (player.volume > 0) {
+                player.seekToNextMediaItem()
+            } else if (playerExtra.volume > 0) {
+                playerExtra.seekToNextMediaItem()
             }
             return
         }
 
-        if (!player!!.isPlaying) {
+        if (!player.isPlaying) {
             Timber.i("my log: main player stop")
-            if (!player!!.hasNextMediaItem()) {
+            if (!player.hasNextMediaItem()) {
                 addSongsToPlayer()
             }
-            player!!.seekToNextMediaItem()
+            player.seekToNextMediaItem()
 
         }
-        if (!playerExtra!!.isPlaying) {
+        if (!playerExtra.isPlaying) {
             Timber.i("my log: extra player stop")
-            if (!playerExtra!!.hasNextMediaItem()) {
+            if (!playerExtra.hasNextMediaItem()) {
                 addSongsToPlayer()
             }
-            playerExtra!!.seekToNextMediaItem()
+            playerExtra.seekToNextMediaItem()
 
         }
 

@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.antuere.musicapp.databinding.HeaderItemBinding
 import com.antuere.domain.musicProfile.Day
 import com.antuere.domain.util.convertDayOfWeekToNumber
+import com.antuere.musicapp.util.MyPlayer
 import kotlinx.coroutines.*
 
 
@@ -17,7 +18,7 @@ import kotlinx.coroutines.*
 * with nested recycle view. Nested recycle view showing
 * one playlist with time start, time end and proportion*/
 
-class MainAdapter(private val currentDate: Int) :
+class MainAdapter(private val currentDate: Int, private val myPlayer: MyPlayer) :
     ListAdapter<Day, MainAdapter.TitleViewHolder>(MyDiffCallBack()) {
 
     private val backScope = CoroutineScope(Dispatchers.Default)
@@ -28,7 +29,7 @@ class MainAdapter(private val currentDate: Int) :
 
     override fun onBindViewHolder(holder: TitleViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item, currentDate)
+        holder.bind(item, currentDate, myPlayer)
     }
 
     fun submitListOnAnotherThread(list: List<Day>) {
@@ -51,7 +52,7 @@ class MainAdapter(private val currentDate: Int) :
             }
         }
 
-        fun bind(item: Day, currentDate: Int) {
+        fun bind(item: Day, currentDate: Int, myPlayer: MyPlayer) {
 
             val dayFromProfile = convertDayOfWeekToNumber(item.day.uppercase(), false)
             if (currentDate == dayFromProfile) {
@@ -60,7 +61,7 @@ class MainAdapter(private val currentDate: Int) :
             }
 
             binding.header.text = item.day.replaceFirstChar { it.titlecaseChar() }
-            val childAdapter = ChildAdapter()
+            val childAdapter = ChildAdapter(myPlayer)
             binding.nestedRecycleView.adapter = childAdapter
             childAdapter.submitList(playlistItems[item.day])
 

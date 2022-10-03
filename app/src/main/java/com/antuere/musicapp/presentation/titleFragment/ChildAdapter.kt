@@ -7,16 +7,17 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.antuere.domain.usecase.IncreaseProportionUseCase
-import com.antuere.musicapp.MyPlayer
+import com.antuere.musicapp.util.MyPlayer
 import com.antuere.musicapp.databinding.DayItemBinding
 import com.antuere.domain.usecase.ReduceProportionUseCase
 import com.antuere.musicapp.util.PlaylistItem
+import javax.inject.Inject
 
 
 /*Adapter for NESTED recycle view, for show
 * one playlist with time start, time end and proportion */
 
-class ChildAdapter :
+class ChildAdapter(private val myPlayer: MyPlayer) :
     ListAdapter<PlaylistItem, ChildAdapter.ChildViewHolder>(ChildDiffUtil()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChildViewHolder {
@@ -25,9 +26,8 @@ class ChildAdapter :
 
     override fun onBindViewHolder(holder: ChildViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item)
+        holder.bind(item, myPlayer)
     }
-
 
     class ChildViewHolder private constructor(private val binding: DayItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -40,7 +40,7 @@ class ChildAdapter :
             }
         }
 
-        fun bind(item: PlaylistItem) {
+        fun bind(item: PlaylistItem, myPlayer: MyPlayer) {
             with(binding) {
 
                 val timeTextString = "${item.from} - ${item.to}"
@@ -52,7 +52,7 @@ class ChildAdapter :
 //               Song integrity check: if current MD5 not match with required - show errorView
                 if (item.showError) errorView.visibility = View.VISIBLE
 
-                MyPlayer.playlistsRequired.forEach {
+                myPlayer.playlistsRequired.forEach {
                     if (it.playlistId == item.playlist.id) {
                         val prop = it.proportion
                         proportion.text = it.proportion.toString()
@@ -62,22 +62,22 @@ class ChildAdapter :
 
                 buttonLeft.setOnClickListener {
                     val reduceProportionUseCase =
-                        ReduceProportionUseCase(MyPlayer.playlistsRequired)
+                        ReduceProportionUseCase(myPlayer.playlistsRequired)
                     val newProp = reduceProportionUseCase.invoke(item.playlist.id)
                     if (newProp < 1) return@setOnClickListener
                     proportion.text = newProp.toString()
 
-                    MyPlayer.updateSongs()
+                    myPlayer.updateSongs()
                 }
 
                 buttonRight.setOnClickListener {
                     val increaseProportionUseCase =
-                        IncreaseProportionUseCase(MyPlayer.playlistsRequired)
+                        IncreaseProportionUseCase(myPlayer.playlistsRequired)
                     val newProp = increaseProportionUseCase.invoke(item.playlist.id)
                     if (newProp < 1) return@setOnClickListener
                     proportion.text = newProp.toString()
 
-                    MyPlayer.updateSongs()
+                    myPlayer.updateSongs()
 
                 }
 

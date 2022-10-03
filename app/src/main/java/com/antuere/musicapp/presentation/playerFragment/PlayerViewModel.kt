@@ -4,14 +4,15 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.antuere.musicapp.MyPlayer
+import androidx.lifecycle.ViewModel
+import com.antuere.musicapp.util.MyPlayer
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class PlayerViewModel @Inject constructor(application: Application) : AndroidViewModel(application),
+class PlayerViewModel @Inject constructor(myPlayer: MyPlayer) : ViewModel(),
     Player.Listener {
 
     private var _mainPlayer = MutableLiveData<ExoPlayer>()
@@ -34,9 +35,9 @@ class PlayerViewModel @Inject constructor(application: Application) : AndroidVie
 
     init {
         _mainPlayer.value =
-            MyPlayer.getInstanceMain(getApplication<Application>().applicationContext)
+            myPlayer.player
         _extraPlayer.value =
-            MyPlayer.getInstanceExtra(getApplication<Application>().applicationContext)
+            myPlayer.playerExtra
 
         _mainPlayer.value!!.addListener(this)
         _extraPlayer.value!!.addListener(this)

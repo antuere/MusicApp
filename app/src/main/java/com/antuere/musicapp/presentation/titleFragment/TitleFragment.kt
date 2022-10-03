@@ -12,10 +12,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import com.antuere.musicapp.R
 import com.antuere.musicapp.databinding.FragmentTitleBinding
+import com.antuere.musicapp.util.MyPlayer
 import com.google.android.material.appbar.MaterialToolbar
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.*
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -24,6 +26,8 @@ class TitleFragment : Fragment() {
     companion object {
         fun newInstance() = TitleFragment()
     }
+
+    @Inject lateinit var myPlayer: MyPlayer
 
     private val viewModel: TitleViewModel by viewModels()
 
@@ -59,7 +63,7 @@ class TitleFragment : Fragment() {
                 val calendar = Calendar.getInstance()
                 val currentDayOnCalendar = calendar.get(Calendar.DAY_OF_WEEK)
 
-                val adapter = MainAdapter(currentDayOnCalendar)
+                val adapter = MainAdapter(currentDayOnCalendar, myPlayer)
                 binding.dayList.adapter = adapter
 
                 adapter.submitListOnAnotherThread(profile.schedule.days.sorted())

@@ -41,9 +41,9 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideMusicProfileDataBase(context: Application): MusicProfileDataBase {
+    fun provideMusicProfileDataBase(application: Application): MusicProfileDataBase {
         return Room.databaseBuilder(
-            context.applicationContext,
+            application.applicationContext,
             MusicProfileDataBase::class.java,
             "music_profiles"
         ).build()
