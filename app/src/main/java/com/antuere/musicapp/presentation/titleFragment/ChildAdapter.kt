@@ -55,7 +55,7 @@ class ChildAdapter :
                 MyPlayer.playlistsRequired.forEach {
                     if (it.playlistId == item.playlist.id) {
                         val prop = it.proportion
-                        binding.proportion.text = it.proportion.toString()
+                        proportion.text = it.proportion.toString()
                         buttonLeft.isClickable = prop != 1
                     }
                 }

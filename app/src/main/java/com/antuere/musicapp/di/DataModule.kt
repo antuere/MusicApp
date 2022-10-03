@@ -21,7 +21,6 @@ object DataModule {
     @Provides
     @Singleton
     fun provideMoshi(): Moshi {
-
         return Moshi.Builder().add(KotlinJsonAdapterFactory())
             .build()
     }
@@ -30,7 +29,7 @@ object DataModule {
     @Provides
     @Singleton
     fun provideApi(moshi: Moshi): MusicApiService {
-        val baseUrl = "http://192.168.1.49:8080/"
+        val baseUrl = "http://192.168.0.22:5432/"
 
         return Retrofit.Builder()
             .addConverterFactory(MoshiConverterFactory.create(moshi))

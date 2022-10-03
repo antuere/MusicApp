@@ -155,7 +155,6 @@ object MyPlayer : Player.Listener {
 
         Timber.i("my log : enter in stopPlay for $timeZone")
         val scope = CoroutineScope(Dispatchers.Main)
-
         scope.launch {
             player!!.volume = 1F
             playerExtra!!.volume = 1F

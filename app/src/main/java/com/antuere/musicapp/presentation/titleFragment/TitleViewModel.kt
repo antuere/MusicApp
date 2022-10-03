@@ -25,13 +25,10 @@ val playlistItems: Map<String, List<PlaylistItem>>
 @HiltViewModel
 class TitleViewModel @Inject constructor(
     application: Application,
-    musicProfileRepository: MusicProfileRepository
-) : AndroidViewModel(application) {
+    getMusicProfileUseCase: GetMusicProfileUseCase,
+    private val updateMusicProfileUseCase: UpdateMusicProfileUseCase
 
-    private val getMusicProfileUseCase =
-        GetMusicProfileUseCase(musicProfileRepository)
-    private val updateMusicProfileUseCase =
-        UpdateMusicProfileUseCase(musicProfileRepository)
+) : AndroidViewModel(application) {
 
     private var foldersPaths = mutableMapOf<String, String>()
 
@@ -70,7 +67,7 @@ class TitleViewModel @Inject constructor(
             try {
                 Timber.i("timer start")
                 updateMusicProfileUseCase.invoke()
-                delay(30)
+                delay(100)
 
             } catch (e: Exception) {
                 _showError.value = "Offline mode"
