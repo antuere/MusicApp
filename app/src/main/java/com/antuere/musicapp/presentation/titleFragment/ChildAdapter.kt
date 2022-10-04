@@ -11,7 +11,6 @@ import com.antuere.musicapp.util.MyPlayer
 import com.antuere.musicapp.databinding.DayItemBinding
 import com.antuere.domain.usecase.ReduceProportionUseCase
 import com.antuere.musicapp.util.PlaylistItem
-import javax.inject.Inject
 
 
 /*Adapter for NESTED recycle view, for show

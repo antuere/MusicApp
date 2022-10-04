@@ -1,9 +1,7 @@
 package com.antuere.musicapp.util
 
 import android.content.Context
-import androidx.lifecycle.asLiveData
 import com.antuere.domain.musicProfile.MusicProfile
-import com.antuere.domain.usecase.GetMusicProfileUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -15,13 +13,13 @@ import java.io.FileOutputStream
 import java.lang.Exception
 import java.net.URL
 
+
 class MyMusicDownloader(val context: Context) {
 
     private var foldersPaths = mutableMapOf<String, String>()
 
     //Download ALL songs from profile
     suspend fun downloadSongs(profile: MusicProfile) {
-
         profile.schedule.playlists.forEach { playlist ->
             playlist.songs.forEach { song ->
                 downloadMusicFileFromUrl(
@@ -68,7 +66,7 @@ class MyMusicDownloader(val context: Context) {
             val file = File(directory, fileName)
             val outputStream = FileOutputStream(file)
 
-            val data = ByteArray(2048)
+            val data = ByteArray(3072)
             var count = inputStream.read(data)
 
             try {

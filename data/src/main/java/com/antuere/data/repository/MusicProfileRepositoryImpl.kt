@@ -9,6 +9,7 @@ import com.antuere.domain.repository.MusicProfileRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -33,7 +34,6 @@ class MusicProfileRepositoryImpl @Inject constructor(
 
     override suspend fun updateProfile() {
         withContext(Dispatchers.IO) {
-
             val profileJson = musicProfileApi.getJSON()
             val profile = musicProfileDtoMapper.mapToEntity(profileJson)
 

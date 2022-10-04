@@ -1,7 +1,6 @@
 package com.antuere.musicapp.util
 
 import android.app.Application
-import android.content.Context
 import android.net.Uri
 import com.antuere.domain.musicProfile.TimeZone
 import com.antuere.domain.musicProfile.MusicProfile
@@ -25,7 +24,7 @@ Singleton class for ExoPlayer, working with schedule.
 For crossFade effect we created 2 instances of ExoPlayer
 */
 
-class MyPlayer @Inject constructor(application: Application) : Player.Listener {
+class MyPlayer(application: Application) : Player.Listener {
 
     private lateinit var playlistsDownload: List<Playlist>
     lateinit var playlistsRequired: MutableList<PlaylistsZone>
@@ -38,43 +37,14 @@ class MyPlayer @Inject constructor(application: Application) : Player.Listener {
         ExoPlayer.Builder(application).build()
     }
 
-
     private var durationSet = false
     private var doCrossFade = false
     private var isAddNew = true
-
-//    fun getInstanceMain(context: Context): ExoPlayer {
-//        var myPlayer = player
-//        if (myPlayer == null) {
-//            synchronized(this) {
-//                if (myPlayer == null) {
-//                    myPlayer = ExoPlayer.Builder(context).build()
-//                    player = myPlayer
-//
-//                }
-//            }
-//        }
-//        return myPlayer
-//    }
-//
-//    fun getInstanceExtra(context: Context): ExoPlayer {
-//        var myPlayer = playerExtra
-//        if (myPlayer == null) {
-//            synchronized(this) {
-//                if (myPlayer == null) {
-//                    myPlayer = ExoPlayer.Builder(context).build()
-//                    playerExtra = myPlayer
-//                }
-//            }
-//        }
-//        return myPlayer
-//    }
 
 /*   Made this once when app start first time or after destroy.
 *    Set schedule rules based on profile instance, get days from profile,
 *    iterate on days, and when some day from listDays match with current day,
 *    we set timers for playlists */
-
     fun setScheduleForPlayer(profile: MusicProfile) {
 
         val days = profile.schedule.days
@@ -159,9 +129,9 @@ class MyPlayer @Inject constructor(application: Application) : Player.Listener {
 
     private fun stopPlay(timeZone: TimeZone) {
 
-        Timber.i("my log : enter in stopPlay for $timeZone")
         val scope = CoroutineScope(Dispatchers.Main)
         scope.launch {
+            Timber.i("my log : enter in stopPlay for $timeZone")
             player.volume = 1F
             playerExtra.volume = 1F
 
@@ -173,6 +143,8 @@ class MyPlayer @Inject constructor(application: Application) : Player.Listener {
             playerExtra.clearMediaItems()
             player.clearMediaItems()
             playlistsRequired = mutableListOf()
+
+            Timber.i("my log : exit in stopPlay for $timeZone")
         }
     }
 

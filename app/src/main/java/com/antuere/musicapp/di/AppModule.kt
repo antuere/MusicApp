@@ -1,7 +1,6 @@
 package com.antuere.musicapp.di
 
 import android.app.Application
-import com.antuere.domain.usecase.GetMusicProfileUseCase
 import com.antuere.musicapp.util.MyMusicDownloader
 import com.antuere.musicapp.util.MyPlayer
 import dagger.Module
