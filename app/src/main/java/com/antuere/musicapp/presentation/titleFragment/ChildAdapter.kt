@@ -51,13 +51,9 @@ class ChildAdapter(private val myPlayer: MyPlayer) :
 //               Song integrity check: if current MD5 not match with required - show errorView
                 if (item.showError) errorView.visibility = View.VISIBLE
 
-                myPlayer.playlistsRequired.forEach {
-                    if (it.playlistId == item.playlist.id) {
-                        val prop = it.proportion
-                        proportion.text = it.proportion.toString()
-                        buttonLeft.isClickable = prop != 1
-                    }
-                }
+                proportion.text = item.playlistsZone.proportion.toString()
+                buttonLeft.isClickable = item.playlistsZone.proportion != 1
+
 
                 buttonLeft.setOnClickListener {
                     val reduceProportionUseCase =

@@ -1,6 +1,7 @@
 package com.antuere.musicapp.util
 
 import com.antuere.domain.musicProfile.Playlist
+import com.antuere.domain.musicProfile.PlaylistsZone
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -11,7 +12,8 @@ data class PlaylistItem(
     val from: String,
     val to: String,
     val playlist: Playlist,
-    val showError: Boolean
+    val showError: Boolean,
+    val playlistsZone: PlaylistsZone
 ) : Comparable<PlaylistItem> {
 
     override fun compareTo(other: PlaylistItem): Int {

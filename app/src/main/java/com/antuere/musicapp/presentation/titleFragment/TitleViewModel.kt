@@ -94,7 +94,8 @@ class TitleViewModel @Inject constructor(
                         timeZone.from,
                         timeZone.to,
                         playlist,
-                        showError
+                        showError,
+                        playlistsZone
                     )
                     items.add(item)
                     playlistItemsPrivate[day.day] = items.sorted()

@@ -23,11 +23,8 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class TitleFragment : Fragment() {
 
-    companion object {
-        fun newInstance() = TitleFragment()
-    }
-
-    @Inject lateinit var myPlayer: MyPlayer
+    @Inject
+    lateinit var myPlayer: MyPlayer
 
     private val viewModel: TitleViewModel by viewModels()
 
@@ -114,8 +111,8 @@ class TitleFragment : Fragment() {
 
 
     // Release players when app destroy
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onDetach() {
+        super.onDetach()
         viewModel.player.observe(viewLifecycleOwner) {
             it?.release()
         }

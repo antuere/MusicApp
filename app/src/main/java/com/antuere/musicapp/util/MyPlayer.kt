@@ -15,7 +15,6 @@ import kotlinx.coroutines.*
 import timber.log.Timber
 import java.io.File
 import java.util.*
-import javax.inject.Inject
 import kotlin.concurrent.timerTask
 
 
@@ -105,6 +104,7 @@ class MyPlayer(application: Application) : Player.Listener {
 
         val scope = CoroutineScope(Dispatchers.Main)
         scope.launch {
+            delay(200)
             Timber.i("my log : enter in startPlay for $timeZone")
             playerExtra.clearMediaItems()
             player.clearMediaItems()

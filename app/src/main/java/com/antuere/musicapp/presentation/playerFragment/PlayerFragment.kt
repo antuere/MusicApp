@@ -20,10 +20,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class PlayerFragment : Fragment() {
 
-    companion object {
-        fun newInstance() = PlayerFragment()
-    }
-
     private val viewModel: PlayerViewModel by viewModels()
 
     private lateinit var binding: FragmentPlayerBinding

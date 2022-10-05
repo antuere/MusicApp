@@ -17,7 +17,6 @@ class PlayerViewModel @Inject constructor(myPlayer: MyPlayer) : ViewModel(),
     val mainPlayer: LiveData<ExoPlayer>
         get() = _mainPlayer
 
-
     private var _extraPlayer = MutableLiveData<ExoPlayer>()
     val extraPlayer: LiveData<ExoPlayer>
         get() = _extraPlayer
@@ -30,7 +29,6 @@ class PlayerViewModel @Inject constructor(myPlayer: MyPlayer) : ViewModel(),
     val changeTitle: LiveData<Boolean>
         get() = _changeTitle
 
-
     init {
         _mainPlayer.value =
             myPlayer.player
@@ -39,22 +37,24 @@ class PlayerViewModel @Inject constructor(myPlayer: MyPlayer) : ViewModel(),
 
         _mainPlayer.value!!.addListener(this)
         _extraPlayer.value!!.addListener(this)
+
+        chooseCurrentPlayer()
+        chooseCurrentTitle()
     }
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
 
-        if (!_mainPlayer.value!!.isPlaying && !_extraPlayer.value!!.isPlaying) {
+        chooseCurrentTitle()
 
-            _changeTitle.value = true
-
-        } else if (!_mainPlayer.value!!.isPlaying && _extraPlayer.value!!.isPlaying) {
-
-            _changeTitle.value = false
-        }
     }
 
     override fun onVolumeChanged(volume: Float) {
 
+        chooseCurrentPlayer()
+
+    }
+
+    private fun chooseCurrentPlayer() {
         if (_mainPlayer.value!!.volume > 0.65F) {
 
             _showMain.value = true
@@ -64,7 +64,16 @@ class PlayerViewModel @Inject constructor(myPlayer: MyPlayer) : ViewModel(),
             _showMain.value = false
 
         }
+    }
 
+    private fun chooseCurrentTitle() {
+        if (!_mainPlayer.value!!.isPlaying && !_extraPlayer.value!!.isPlaying) {
 
+            _changeTitle.value = true
+
+        } else if (!_mainPlayer.value!!.isPlaying && _extraPlayer.value!!.isPlaying) {
+
+            _changeTitle.value = false
+        }
     }
 }
